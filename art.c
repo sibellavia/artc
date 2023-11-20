@@ -1,9 +1,19 @@
+/*
+ * Copyright (c) 2023, Simone Bellavia <simone.bellavia@live.it>
+ * All rights reserved.
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
+#ifdef __x86_64__
+    #include <emmintrin.h>
+#endif
+
 #define MAX_PREFIX_LENGTH 32
-#define EMPTY_KEY '\255' // A value that isn't a valid ASCII character
+#define EMPTY_KEY ((unsigned char)255) // A value that isn't a valid ASCII character
 
 /*** DATA STRUCTURES ***/
 
@@ -66,6 +76,7 @@ typedef struct {
     int prefixLen;
     char keys[4];
     Node *children[4];
+    int count;
 } Node4;
 
 typedef struct {
@@ -74,6 +85,7 @@ typedef struct {
     int prefixLen;
     char keys[16];
     Node *children[16];
+    int count;
 } Node16;
 
 typedef struct {
@@ -154,4 +166,93 @@ ART *initializeAdaptiveRadixTree() {
     tree->size = 0;
 
     return tree;
+}
+
+/**
+ * findChild *
+ * 
+*/
+
+#ifdef __SSE2__
+    Node *findChildSSE(Node16 *node, char byte){
+        __m128i key = _mm_set1_epi8(byte);
+        __m128i keys = _mm_loadu_si128((__m128i *)(node->keys));
+        __m128i cmp = _mm_cmpeq_epi8(key, keys);
+        int mask = (1 << (node->count - 1));
+        int bitfield = _mm_movemask_epi8(cmp) & mask;
+        if (bitfield){
+            int index = __builtin_ctz(bitfield);
+            return node->children[index];
+        } else {
+            return NULL;
+        }
+    }
+#endif
+
+Node *findChildBinary(Node16 *node, char byte){
+    int low = 0;
+    int high = node->count - 1;
+
+    while (low <= high){
+        int mid = low + (high - low) / 2;
+        char midByte = node->keys[mid];
+
+        if (midByte < byte){
+            low = mid + 1;
+        }
+        else if (midByte > byte){
+            high = mid - 1;
+        }
+        else{
+            return node->children[mid];
+        }
+    }
+
+    return NULL;
+}
+
+Node *findChild(Node *node, char byte){
+    if (node->type == NODE4){
+        Node4 *node4 = (Node4 *)node;
+
+        for (int i = 0; i < node4->count; i++){
+            if(node4->keys[i] == byte){
+                return node4->children[i];
+            }
+        }
+
+        return NULL;
+    }
+
+    if(node->type == NODE16){
+        Node16 *node16 = (Node16 *)node;
+        #ifdef __SSE2__
+            return findChildSSE(node16, byte);
+        #else
+            return findChildBinary(node16, byte);
+        #endif
+    }
+
+    if(node->type == NODE48){
+        Node48 *node48 = (Node48 *)node;
+
+        unsigned char childIndex = node48->keys[byte];
+
+        if(childIndex != EMPTY_KEY){
+            return node48->children[childIndex];
+        } else {
+            return NULL;
+        }
+    }
+
+    if(node->type == NODE256){
+        Node256 *node256 = (Node256 *)node;
+        return node256->children[byte];
+    }
+
+    return NULL;
+}
+
+int main(){
+    return 0;
 }
