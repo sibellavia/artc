@@ -1,5 +1,5 @@
 /**
- * CARTree - C Adaptive Radix Tree
+ * ART.C - Adaptive Radix Tree in C
  * 
  * Copyright (c) 2023, Simone Bellavia <simone.bellavia@live.it>
  * All rights reserved.
@@ -45,6 +45,7 @@ typedef enum {
  * to determine the node type at runtime and explicitly cast to the appropriate 
  * derived structure to access its specific fields.
  */
+
 typedef struct Node {
     NodeType type;
 } Node;

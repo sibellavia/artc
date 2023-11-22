@@ -6,7 +6,7 @@
  * Released under MIT License. Please refer to LICENSE for details
 */
 
-#include <art.h>
+#include "art.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -280,3 +280,285 @@ Node *search(Node *node, char *key, int depth){
 
     return search(next, key, depth+1);
 }
+
+Node *doesNodeHaveChild(Node *node){
+    switch(node->type){
+        case NODE4:{
+                Node4 *node4 = (Node4 *)node;
+                
+                for (int i = 0; i < 4; i++){
+                    if (node4->children[i] != NULL){
+                        return node4->children[i];
+                    }
+                }
+
+                return NULL;
+            }
+            break;
+        case NODE16:{
+                Node16 *node16 = (Node16 *)node;
+
+                for (int i = 0; i < 16; i++){
+                    if (node16->children[i] != NULL){
+                        return node16->children[i];
+                    }
+                }
+
+                return NULL;
+            }
+            break;
+        case NODE48:{
+                Node48 *node48 = (Node48 *)node;
+
+                for (int i = 0; i < 48; i++){
+                    if (node48->children[i] != NULL){
+                        return node48->children[i];
+                    }
+                }
+
+                return NULL;
+            }
+
+            break;
+        case NODE256:{
+                Node256 *node256 = (Node256 *)node;
+
+                for (int i = 0; i < 256; i++){
+                    return node256->children[i];
+                }
+
+                return NULL;
+            }
+            break;
+        default:
+            return NULL;
+    }
+}
+
+Node4 *makeNode4(){
+    Node4 *node4 = malloc(sizeof(Node4));
+    if(!node4){
+        return NULL;
+    }
+
+    node4->node.type = NODE4;
+    node4->prefixLen = 0;
+
+    for (int i = 0; i < 4; i++){
+        node4->keys[i] = 0;
+        node4->children[i] = NULL;
+    }
+
+    node4->count= 0;
+
+    return node4;
+}
+
+Node16 *makeNode16(){
+    Node16 *node16 = malloc(sizeof(Node16));
+    if(!node16){
+        return NULL;
+    }
+
+    node16->node.type = NODE16;
+    node16->prefixLen = 0;
+
+    for (int i = 0; i < 16; i++){
+        node16->keys[i] = 0;
+        node16->children[i] = NULL;
+    }
+
+    node16->count= 0;
+
+    return node16;
+}
+
+Node48 *makeNode48(){
+    Node48 *node48 = malloc(sizeof(Node48));
+    if(!node48){
+        return NULL;
+    }
+
+    node48->node.type = NODE4;
+    node48->prefixLen = 0;
+
+    memset(node48->keys, 0, 256);
+
+    for (int i = 0; i < 48; i++){
+        node48->children[i] = NULL;
+    }
+
+    return node48;
+}
+
+Node256 *makeNode256(){
+    Node256 *node256 = malloc(sizeof(Node256));
+    if(!node256){
+        return NULL;
+    }
+
+    node256->node.type = NODE256;
+    node256->prefixLen = 0;
+
+    for (int i = 0; i < 256; i++){
+        node256->children[i] = NULL;
+    }
+
+    return node256;
+}
+
+int findEmptyIndexForChildren(Node48 *node48){
+    for (int i = 0; i < 48; i++){
+        if (node48->children[i] == NULL){
+            return i;
+        }
+    }
+    
+    return -1;
+}
+
+Node *grow(Node *node){
+    switch(node->type){
+        case NODE4: {
+            Node4 *node4 = (Node4 *)node;
+
+            // Create a new Node16
+            Node16 *newNode = makeNode16();
+            
+            // Copy prefix from node to newNode
+            memcpy(newNode->prefix, node4->prefix, node4->prefixLen);
+            newNode->prefixLen = node4->prefixLen;
+
+            // Copy each child and key from node4 to newNode
+            for(int i = 0; i < node4->count; i++){
+                unsigned char keyChar = node4->keys[i];
+                newNode->keys[i] = keyChar;
+                newNode->children[i] = node4->children[i];
+            }
+
+            // Update the children counter in newNode
+            newNode->count = node4->count;
+
+            free(node4);
+            return (Node *)newNode;
+
+            break;
+        }
+
+        case NODE16: {
+            Node16 *node16 = (Node16 *)node;
+
+            // Create a new Node48
+            Node48 *newNode = makeNode48();
+            
+            // Copy prefix from node to newNode
+            memcpy(newNode->prefix, node16->prefix, node16->prefixLen);
+            newNode->prefixLen = node16->prefixLen;
+
+            // Copy each child and key from node16 to newNode
+            for(int i = 0; i < node16->count; i++){
+                char keyChar = node16->keys[i];
+                unsigned char index = (unsigned char)keyChar;
+
+                int childIndex = findEmptyIndexForChildren(newNode);
+                newNode->keys[index] = childIndex;
+                newNode->children[childIndex] = node16->children[i];
+
+                
+            }
+
+            free(node16);
+            return (Node *)newNode;
+
+            break;
+        }
+            
+        case NODE48: {
+            Node48 *node48 = (Node48 *)node;
+            
+            Node256 *newNode = makeNode256();
+
+            memcpy(newNode->prefix, node48->prefix, node48->prefixLen);
+            newNode->prefixLen = node48->prefixLen;
+
+            int childIndex = 0;
+
+            for(int i = 0; i < 256; i++){
+                if(node48->keys[i] != 0){
+                    childIndex = node48->keys[i];
+                    newNode->children[i] = node48->children[childIndex];
+                }
+            }
+
+            free(node48);
+
+            return (Node *)newNode;
+            break;
+        }
+
+        // case LEAF:
+            // if parentNode is a leaf, transform it into a Node4
+    }
+}
+
+char *loadKey(Node *node){
+    if(node->type == LEAF){
+        LeafNode *leafNode = (LeafNode *)node;
+        return strdup(leafNode->key);
+    } else {
+        return NULL;
+    }
+}
+
+// Node *addChild(Node *parentNode, char *keyChar, Node *childNode){
+//     switch(parentNode->type){
+//         case NODE4:
+//             // if parentNode has less than 4 child
+//                 // add childNode to parentNode based on keyChar
+//                 // update the parentNode structure
+//             // else
+//                 // grow parentNode to 16 and call addChild again
+//         case NODE16:
+//             // if parentNode has less than 16 child
+//                 // add childNode to parentNode based on keyChar
+//                 // update the parentNode structure
+//             // else
+//                 // grow parentNode to 48 and call addChild again
+//         case NODE48:
+//             // if parentNode has less than 48 child
+//                 // add childNode to parentNode based on keyChar
+//                 // update the parentNode structure
+//             // else
+//                 // grow parentNode to 256 and call addChild again
+
+//         case NODE256:
+//             // add childNode to parentNode
+//         case LEAF:
+//             // if parentNode is a leaf, transform it into a Node4
+//     }
+// }
+
+// Node *insert(Node *node, char *key, Node *leaf, int depth){
+//     if(node == NULL){
+//         node = leaf;
+//         return node;
+//     }
+
+//     if(node->type == LEAF){
+//         Node4 *newNode = makeNode4();
+//         char *key2 = loadKey(node);
+//         int count = 0;
+//         for(int i = depth; key[i] == key2[i]; i=i+1){
+//             newNode->prefix[i-depth] = key[i];
+//             count = i;
+//         }
+//         newNode->prefixLen = count-depth;
+//         depth += newNode->prefixLen;
+//         // addChild(newNode, key[depth], leaf)
+//         // addChild(newNode, key2[depth], node)
+//         // replace(node, newNode)
+
+//         free(key2);
+//         return;
+//     }
+// }
