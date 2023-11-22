@@ -15,7 +15,7 @@
 #endif
 
 #define MAX_PREFIX_LENGTH 32
-#define EMPTY_KEY ((unsigned char)255) // A value that isn't a valid ASCII character
+#define EMPTY_KEY '\xFF' // -1
 
 /*** DATA STRUCTURES ***/
 
@@ -165,7 +165,7 @@ ART *initializeAdaptiveRadixTree();
  * @param byte The byte (key) to find the corresponding child for.
  * @return A pointer to the found child node, or NULL if no match is found.
  */
-Node *findChildSSE(Node16 *node, char byte);
+Node *findChildSSE(Node *genericNode, char byte);
 
 /**
  * findChildBinary - Finds a child node in a Node16 using binary search.
@@ -180,7 +180,7 @@ Node *findChildSSE(Node16 *node, char byte);
  * @param byte The byte (key) to find the corresponding child for.
  * @return A pointer to the found child node, or NULL if no match is found.
  */
-Node *findChildBinary(Node16 *node, char byte);
+Node *findChildBinary(Node *genericNode, char byte);
 
 /**
  * findChild - Finds a child node in an ART node based on the given byte (key).
