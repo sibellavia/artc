@@ -131,5 +131,104 @@ typedef struct {
 } ART;
 
 /*** FUNCTIONS ***/
+
+/**
+ * createRootNode
+ *
+ * Creates and initializes a new Node4 type root node for an Adaptive Radix Tree (ART).
+ * Assigns an initial value of EMPTY_KEY to all elements in the keys array
+ * and sets all child pointers to NULL, indicating that the node is initially empty.
+ * Returns a pointer to the created root node, or NULL if memory allocation fails.
+ */
 Node *createRootNode();
+
+/**
+ * initializeAdaptiveRadixTree 
+ *
+ * Initializes a new Adaptive Radix Tree (ART).
+ * Creates a new ART structure and sets its root node
+ * by calling the createRootNode function. Also initializes the size
+ * of the tree to 0, indicating that the tree initially has no elements.
+ * Returns a pointer to the initialized ART, or NULL if memory allocation fails.
+ */
 ART *initializeAdaptiveRadixTree();
+
+/**
+ * findChildSSE - Finds a child node in a Node16 using SSE instructions.
+ * 
+ * Utilizes SSE (Streaming SIMD Extensions) to perform an efficient,
+ * parallel comparison of a given byte against all keys in a Node16.
+ * This function is optimized for architectures that support SSE and provides
+ * a significant speed-up by processing multiple bytes in parallel.
+ *
+ * @param node A pointer to the Node16 to search in.
+ * @param byte The byte (key) to find the corresponding child for.
+ * @return A pointer to the found child node, or NULL if no match is found.
+ */
+Node *findChildSSE(Node16 *node, char byte);
+
+/**
+ * findChildBinary - Finds a child node in a Node16 using binary search.
+ * 
+ * Implements a binary search algorithm to find a specific byte in the
+ * keys array of a Node16. This method is used as a portable alternative
+ * to SSE-based search, suitable for platforms that do not support SSE.
+ * Binary search offers better performance than a linear search, especially
+ * when the number of keys is relatively large.
+ *
+ * @param node A pointer to the Node16 to search in.
+ * @param byte The byte (key) to find the corresponding child for.
+ * @return A pointer to the found child node, or NULL if no match is found.
+ */
+Node *findChildBinary(Node16 *node, char byte);
+
+/**
+ * findChild - Finds a child node in an ART node based on the given byte (key).
+ * 
+ * This function handles the retrieval of a child node from different types
+ * of ART nodes (Node4, Node16, Node48, Node256) based on the provided byte.
+ * The specific search algorithm or method used depends on the node type:
+ *   - For Node4, a linear search is used.
+ *   - For Node16, it utilizes either SSE-based search or binary search,
+ *     depending on the platform's support for SSE.
+ *   - For Node48, the function performs a lookup using an index array.
+ *   - For Node256, it directly accesses the child based on the byte value.
+ *
+ * This approach ensures that the search is as efficient as possible given
+ * the characteristics of each node type.
+ *
+ * @param node A pointer to the ART node to search in.
+ * @param byte The byte (key) to find the corresponding child for.
+ * @return A pointer to the found child node, or NULL if no match is found.
+ */
+Node *findChild(Node *node, char byte);
+
+int getPrefixLength(Node *node);
+
+int checkPrefix(Node *node, char *key, int depth);
+
+Node *search(Node *node, char *key, int depth);
+
+Node *doesNodeHaveChild(Node *node);
+
+Node4 *makeNode4();
+Node16 *makeNode16();
+Node48 *makeNode48();
+Node256 *makeNode256();
+
+LeafNode *makeLeafNode(char *key, void *value);
+
+int findEmptyIndexForChildren(Node48 *node48);
+
+Node *grow(Node *node);
+
+char *loadKey(Node *node);
+
+Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode);
+Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode);
+Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode);
+Node *addChildToNode256(Node *parentNode, char keyChar, Node *childNode);
+
+Node *addChild(Node *parentNode, char keyChar, Node *childNode);
+
+Node *insert(Node *node, char *key, Node *leaf, int depth);
