@@ -366,18 +366,18 @@ Node16 *makeNode16(){
     return node16;
 }
 
-Node48 *makeNode48(){
+Node48 *makeNode48() {
     Node48 *node48 = malloc(sizeof(Node48));
-    if(!node48){
+    if (!node48) {
         return NULL;
     }
 
     node48->node.type = NODE48;
     node48->prefixLen = 0;
 
-    memset(node48->keys, 0, 256);
+    memset(node48->keys, EMPTY_KEY, 256);
 
-    for (int i = 0; i < 48; i++){
+    for (int i = 0; i < 48; i++) {
         node48->children[i] = NULL;
     }
 

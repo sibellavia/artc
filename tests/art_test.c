@@ -50,6 +50,26 @@ Node48* initializeExampleNode48() {
     return node;
 }
 
+Node256* initializeExampleNode256() {
+    Node256 *node = makeNode256();
+    if (!node) {
+        return NULL;
+    }
+
+    
+    int selectedIndices[] = {50, 100, 150, 200};
+    int numOfChildren = sizeof(selectedIndices) / sizeof(selectedIndices[0]);
+
+    for (int i = 0; i < numOfChildren; i++) {
+        ExampleChild *child = malloc(sizeof(ExampleChild));
+        child->dummy = i;
+
+        node->children[selectedIndices[i]] = (Node *)child;
+    }
+
+    return node;
+}
+
 
 /* Node *createRootNode() */
 
@@ -127,7 +147,7 @@ void test_initializeAdaptiveRadixTree_InitialSize(void) {
     free(tree);
 }
 
-/* Node *findChildBinary(Node16 *node, char byte) */
+/* Node *findChildBinary(Node *genericNode, char byte) */
 
 void test_findChildBinary_ExistingChild(void) {
     Node16 *node = initializeExampleNode16();
@@ -210,12 +230,27 @@ void test_findChildBinary_NonExistingByte_Node48(void) {
     Node48 *node = initializeExampleNode48();
     TEST_ASSERT_NOT_NULL(node);
 
-    char byte = 5;  // Sappiamo che la chiave 5 non esiste
+    char byte = 5;
     Node *result = findChildBinary(node, byte);
     TEST_ASSERT_NULL(result);
 
-    // Pulizia
     for (int i = 0; i < 3; i++) {
+        free(node->children[i]);
+    }
+    free(node);
+}
+
+void test_findChildBinary_ExistingChild_Node256(void) {
+    Node256 *node = initializeExampleNode256();
+    TEST_ASSERT_NOT_NULL(node);
+
+    char byte = 50;
+    Node *expectedChild = node->children[byte];
+
+    Node *result = findChildBinary((Node *)node, byte);
+    TEST_ASSERT_EQUAL_PTR(expectedChild, result);
+
+    for (int i = 0; i < 256; i++) {
         free(node->children[i]);
     }
     free(node);
@@ -249,4 +284,5 @@ int main(void){
     RUN_TEST(test_findChildBinary_ByteComparison);
     RUN_TEST(test_findChildBinary_ExistingChild_Node48);
     RUN_TEST(test_findChildBinary_NonExistingByte_Node48);
+    RUN_TEST(test_findChildBinary_ExistingChild_Node256);
 }
