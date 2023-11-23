@@ -613,27 +613,27 @@ Node *addChild(Node *parentNode, char keyChar, Node *childNode){
     }
 }
 
-// Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, int depth){
-//     Node4 *newNode = makeNode4();
-//     if(!newNode){
-//         return NULL;
-//     }
+Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, int depth){
+    Node4 *newNode = makeNode4();
+    if(!newNode){
+        return NULL;
+    }
 
-//     // Check the common prefix between the two keys
-//     int prefixLen = 0;
-//     while (existingKey[depth + prefixLen] == newKey[depth + prefixLen]) {
-//         newNode->prefix[prefixLen] = existingKey[depth + prefixLen];
-//         prefixLen++;
-//     }
-//     newNode->prefixLen = prefixLen;
+    // Check the common prefix between the two keys
+    int prefixLen = 0;
+    while (existingKey[depth + prefixLen] == newKey[depth + prefixLen]) {
+        newNode->prefix[prefixLen] = existingKey[depth + prefixLen];
+        prefixLen++;
+    }
+    newNode->prefixLen = prefixLen;
 
-//     // Add the existing leaf and the new value to Node4
-//     char existingKeyChar = existingKey[depth + prefixLen];
-//     char newKeyChar = newKey[depth + prefixLen];
+    // Add the existing leaf and the new value to Node4
+    char existingKeyChar = existingKey[depth + prefixLen];
+    char newKeyChar = newKey[depth + prefixLen];
 
-//     addChild((Node *)newNode, existingKeyChar, leafNode);
-//     addChild((Node *)newNode, newKeyChar, makeLeafNode(newKey, newValue));
-// }
+    addChild((Node *)newNode, existingKeyChar, leafNode);
+    addChild((Node *)newNode, newKeyChar, (Node *)makeLeafNode(newKey, newValue));
+}
 
 // Node *insert(Node *node, char *key, Node *leaf, int depth){
 //     if(node == NULL){
