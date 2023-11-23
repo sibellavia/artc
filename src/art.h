@@ -16,7 +16,7 @@
 #endif
 
 #define MAX_PREFIX_LENGTH 32
-#define EMPTY_KEY '\xFF' // -1
+#define EMPTY_KEY 0xFF
 #define INVALID -1
 
 /*** DATA STRUCTURES ***/

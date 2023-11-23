@@ -127,46 +127,13 @@ Node *findChildBinary(Node *genericNode, char byte)
 }
 
 Node *findChild(Node *node, char byte){
-    if (node->type == NODE4){
-        Node4 *node4 = (Node4 *)node;
-
-        for (int i = 0; i < node4->count; i++){
-            if(node4->keys[i] == byte){
-                return node4->children[i];
-            }
-        }
-
-        return NULL;
-    }
-
-    if(node->type == NODE16){
-        Node16 *node16 = (Node16 *)node;
-        #ifdef __SSE2__
-            return findChildSSE(node16, byte);
-        #else
-            return findChildBinary(node16, byte);
-        #endif
-    }
-
-    if(node->type == NODE48){
-        Node48 *node48 = (Node48 *)node;
-
-        unsigned char childIndex = node48->keys[byte];
-
-        if(childIndex < 48){
-            return node48->children[childIndex];
-        } else {
-            return NULL;
-        }
-    }
-
-    if(node->type == NODE256){
-        Node256 *node256 = (Node256 *)node;
-        return node256->children[byte];
-    }
-
-    return NULL;
+    #ifdef __SSE2__
+        return findChildSSE(node, byte);
+    #else
+        return findChildBinary(node, byte);
+    #endif
 }
+
 
 int getPrefixLength(Node *node) {
     switch (node->type){
@@ -509,12 +476,12 @@ Node *grow(Node *node){
         }
 
         case NODE256: {
-            return INVALID;
+            return NULL;
             break;
         }
 
         case LEAF:
-            return INVALID;
+            return NULL;
             break;
     }
 }
@@ -640,7 +607,7 @@ Node *addChild(Node *parentNode, char keyChar, Node *childNode){
             break;
         }
         case LEAF:{
-            return INVALID;
+            return NULL;
             break;
         }
     }
