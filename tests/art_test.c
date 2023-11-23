@@ -70,6 +70,42 @@ Node256* initializeExampleNode256() {
     return node;
 }
 
+Node *makeComplexTree() {
+
+    Node4 *root = makeNode4();
+    setPrefix(root, "root", 4);
+
+    for (int i = 0; i < 3; i++) {
+        Node16 *childNode16 = makeNode16();
+        setPrefix(childNode16, "node16_", 7);
+        addChildToNode4(root, 'a' + i, (Node *)childNode16);
+
+        for (int j = 0; j < 2; j++) {
+            Node48 *childNode48 = makeNode48();
+            setPrefix(childNode48, "node48_", 7);
+            addChildToNode16(childNode16, '1' + j, (Node *)childNode48);
+
+            LeafNode *leaf = makeLeafNode("leafkey", "value");
+            addChildToNode48(childNode48, 'x', (Node *)leaf);
+        }
+    }
+
+    return (Node *)root;
+}
+
+Node4 *makeNode4WithChildren() {
+    Node4 *node = makeNode4();
+    setPrefix(node, "test", 4);
+
+    for (int i = 0; i < 3; i++) {
+        char childKey = 'a' + i;  
+        LeafNode *childLeaf = makeLeafNode(&childKey, "value"); 
+        addChildToNode4(node, childKey, (Node *)childLeaf);  
+    }
+
+    return node;
+}
+
 
 /* Node *createRootNode() */
 
@@ -256,6 +292,255 @@ void test_findChildBinary_ExistingChild_Node256(void) {
     free(node);
 }
 
+/* int getPrefixLength(Node *node) */
+
+void test_getPrefixLength_Node4(void) {
+    Node4 *node = makeNode4();
+    TEST_ASSERT_NOT_NULL(node);
+
+    node->prefixLen = 3;
+    int result = getPrefixLength((Node *)node);
+    TEST_ASSERT_EQUAL(3, result);
+
+    free(node);
+}
+
+void test_getPrefixLength_Node16(void) {
+    Node16 *node = makeNode16();
+    TEST_ASSERT_NOT_NULL(node);
+
+    node->prefixLen = 4;
+    int result = getPrefixLength((Node *)node);
+    TEST_ASSERT_EQUAL(4, result);
+
+    free(node);
+}
+
+void test_getPrefixLength_Node48(void) {
+    Node48 *node = makeNode48();
+    TEST_ASSERT_NOT_NULL(node);
+
+    node->prefixLen = 5;
+    int result = getPrefixLength((Node *)node);
+    TEST_ASSERT_EQUAL(5, result);
+
+    free(node);
+}
+
+void test_getPrefixLength_Node256(void) {
+    Node256 *node = makeNode256();
+    TEST_ASSERT_NOT_NULL(node);
+
+    node->prefixLen = 6;
+    int result = getPrefixLength((Node *)node);
+    TEST_ASSERT_EQUAL(6, result);
+
+    free(node);
+}
+void test_getPrefixLength_InvalidNodeType(void) {
+    Node invalidNode;
+    invalidNode.type = 999;  // Invalid node
+
+    int result = getPrefixLength(&invalidNode);
+    TEST_ASSERT_EQUAL(INVALID, result);
+}
+
+/* int checkPrefix(Node *node, char *key, int depth) */
+
+void test_checkPrefix_FullMatch_Node4(void) {
+    Node4 *node = makeNode4();
+    strcpy(node->prefix, "test");
+    node->prefixLen = 4;
+
+    char *key = "testkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(4, result);
+
+    free(node);
+}
+
+void test_checkPrefix_NoMatch_Node4(void) {
+    Node4 *node = makeNode4();
+    strcpy(node->prefix, "abcd");
+    node->prefixLen = 4;
+
+    char *key = "xyzkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(0, result);
+
+    free(node);
+}
+
+void test_checkPrefix_PartialMatch_Node4(void) {
+    Node4 *node = makeNode4();
+    strcpy(node->prefix, "abc");
+    node->prefixLen = 3;
+
+    char *key = "abxyz";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(2, result);
+
+    free(node);
+}
+
+void test_checkPrefix_DifferentDepths_Node4(void) {
+    Node4 *node = makeNode4();
+    strcpy(node->prefix, "hello");
+    node->prefixLen = 5;
+
+    char *key = "worldhello";
+    int result = checkPrefix((Node *)node, key, 5);
+    TEST_ASSERT_EQUAL(5, result);
+
+    free(node);
+}
+
+void test_checkPrefix_FullMatch_Node16(void) {
+    Node16 *node = makeNode16();
+    strcpy(node->prefix, "test");
+    node->prefixLen = 4;
+
+    char *key = "testkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(4, result);
+
+    free(node);
+}
+
+void test_checkPrefix_NoMatch_Node16(void) {
+    Node16 *node = makeNode16();
+    strcpy(node->prefix, "abcd");
+    node->prefixLen = 4;
+
+    char *key = "xyzkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(0, result);
+
+    free(node);
+}
+
+void test_checkPrefix_PartialMatch_Node16(void) {
+    Node16 *node = makeNode16();
+    strcpy(node->prefix, "abc");
+    node->prefixLen = 3;
+
+    char *key = "abxyz";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(2, result);
+
+    free(node);
+}
+
+void test_checkPrefix_DifferentDepths_Node16(void) {
+    Node16 *node = makeNode16();
+    strcpy(node->prefix, "hello");
+    node->prefixLen = 5;
+
+    char *key = "worldhello";
+    int result = checkPrefix((Node *)node, key, 5);
+    TEST_ASSERT_EQUAL(5, result);
+
+    free(node);
+}
+
+void test_checkPrefix_FullMatch_Node48(void) {
+    Node48 *node = makeNode48();
+    strcpy(node->prefix, "test");
+    node->prefixLen = 4;
+
+    char *key = "testkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(4, result);
+
+    free(node);
+}
+
+void test_checkPrefix_NoMatch_Node48(void) {
+    Node48 *node = makeNode48();
+    strcpy(node->prefix, "abcd");
+    node->prefixLen = 4;
+
+    char *key = "xyzkey";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(0, result);
+
+    free(node);
+}
+
+void test_checkPrefix_PartialMatch_Node48(void) {
+    Node48 *node = makeNode48();
+    strcpy(node->prefix, "abc");
+    node->prefixLen = 3;
+
+    char *key = "abxyz";
+    int result = checkPrefix((Node *)node, key, 0);
+    TEST_ASSERT_EQUAL(2, result);
+
+    free(node);
+}
+
+void test_checkPrefix_DifferentDepths_Node48(void) {
+    Node48 *node = makeNode48();
+    strcpy(node->prefix, "hello");
+    node->prefixLen = 5;
+
+    char *key = "worldhello";
+    int result = checkPrefix((Node *)node, key, 5);
+    TEST_ASSERT_EQUAL(5, result);
+
+    free(node);
+}
+
+/* Node *search(Node *node, char *key, int depth) */
+// void test_search_NullNode(void) {
+//     Node *result = search(NULL, "key", 0);
+//     TEST_ASSERT_NULL(result);
+// }
+
+// void test_search_LeafNode_Success(void) {
+//     LeafNode *leaf = makeLeafNode("key", "value");
+//     Node *result = search((Node *)leaf, "key", 0);
+//     TEST_ASSERT_EQUAL_PTR(leaf, result);
+
+//     free(leaf);
+// }
+
+// void test_search_LeafNode_Failure(void) {
+//     LeafNode *leaf = makeLeafNode("key", "value");
+//     Node *result = search((Node *)leaf, "wrongkey", 0);
+//     TEST_ASSERT_NULL(result);
+
+//     free(leaf);
+// }
+
+// void test_search_PrefixMismatch(void) {
+//     Node4 *node = makeNode4();
+//     setPrefix(node, "prefix", 6);
+//     Node *result = search((Node *)node, "wrongprefixkey", 0);
+//     TEST_ASSERT_NULL(result);
+
+//     freeNode4(node);
+// }
+
+// void test_search_InternalNode_Success(void) {
+//     Node4 *node = makeNode4WithChildren("key", "value");
+//     Node *expectedChild = /* figlio corrispondente alla chiave */;
+//     Node *result = search((Node *)node, "key", 0);
+//     TEST_ASSERT_EQUAL_PTR(expectedChild, result);
+
+//     freeNode4(node);
+// }
+
+// void test_search_RecursiveTraversal(void) {
+//     Node4 *root = makeComplexTree();
+//     char *key = "complexkey";
+//     Node *expectedNode = /* nodo corrispondente alla chiave in profondità nell'albero */;
+//     Node *result = search((Node *)root, key, 0);
+//     TEST_ASSERT_EQUAL_PTR(expectedNode, result);
+
+//     freeComplexTree(root);
+// }
+
 /* Main */
 
 int main(void){
@@ -285,4 +570,36 @@ int main(void){
     RUN_TEST(test_findChildBinary_ExistingChild_Node48);
     RUN_TEST(test_findChildBinary_NonExistingByte_Node48);
     RUN_TEST(test_findChildBinary_ExistingChild_Node256);
+
+    /* int getPrefixLength(Node *node) */
+    RUN_TEST(test_getPrefixLength_Node4);
+    RUN_TEST(test_getPrefixLength_Node16);
+    RUN_TEST(test_getPrefixLength_Node48);
+    RUN_TEST(test_getPrefixLength_Node256);
+    RUN_TEST(test_getPrefixLength_InvalidNodeType);
+
+    /* int checkPrefix(Node *node, char *key, int depth) */
+    // Node4 tests
+    RUN_TEST(test_checkPrefix_FullMatch_Node4);
+    RUN_TEST(test_checkPrefix_NoMatch_Node4);
+    RUN_TEST(test_checkPrefix_PartialMatch_Node4);
+    RUN_TEST(test_checkPrefix_DifferentDepths_Node4);
+
+    // Node16 tests
+    RUN_TEST(test_checkPrefix_FullMatch_Node16);
+    RUN_TEST(test_checkPrefix_NoMatch_Node16);
+    RUN_TEST(test_checkPrefix_PartialMatch_Node16);
+    RUN_TEST(test_checkPrefix_DifferentDepths_Node16);
+
+    // Node48 tests
+    RUN_TEST(test_checkPrefix_FullMatch_Node48);
+    RUN_TEST(test_checkPrefix_NoMatch_Node48);
+    RUN_TEST(test_checkPrefix_PartialMatch_Node48);
+    RUN_TEST(test_checkPrefix_DifferentDepths_Node48);
+
+    /* Node *search(Node *node, char *key, int depth) */
+    // RUN_TEST(test_search_NullNode);
+    // RUN_TEST(test_search_LeafNode_Success);
+    // RUN_TEST(test_search_LeafNode_Failure);
+    // RUN_TEST(test_search_PrefixMismatch);
 }

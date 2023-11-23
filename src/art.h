@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #ifdef __x86_64__
     #include <emmintrin.h>
@@ -16,6 +17,7 @@
 
 #define MAX_PREFIX_LENGTH 32
 #define EMPTY_KEY '\xFF' // -1
+#define INVALID -1
 
 /*** DATA STRUCTURES ***/
 
