@@ -222,6 +222,9 @@ LeafNode *makeLeafNode(char *key, void *value);
 
 int findEmptyIndexForChildren(Node48 *node48);
 
+Node *growFromNode4toNode16(Node *node);
+Node *growFromNode16toNode48(Node *node);
+Node *growFromNode48toNode256(Node *node);
 Node *grow(Node *node);
 
 char *loadKey(Node *node);
@@ -230,7 +233,12 @@ Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode);
 Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode);
 Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode);
 Node *addChildToNode256(Node *parentNode, char keyChar, Node *childNode);
-
 Node *addChild(Node *parentNode, char keyChar, Node *childNode);
 
-Node *insert(Node *node, char *key, Node *leaf, int depth);
+Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, int depth);
+
+Node *insert(Node **root, char *key, void *value, int depth);
+
+void freeNode(Node *node);
+
+void freeART(ART *art);

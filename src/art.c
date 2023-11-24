@@ -30,7 +30,7 @@ ART *initializeAdaptiveRadixTree() {
         return NULL;
     }
 
-    tree->root = createRootNode();
+    tree->root = NULL;
     tree->size = 0;
 
     return tree;
@@ -370,13 +370,22 @@ LeafNode *makeLeafNode(char *key, void *value){
     }
 
     leafNode->node.type = LEAF;
+
     leafNode->key = malloc(strlen(key) + 1);
     if(!leafNode->key){
         free(leafNode);
         return NULL;
     }
     strcpy(leafNode->key, key);
-    leafNode->value = value;
+
+    leafNode->value = malloc(strlen(value) + 1);
+    if (!leafNode->value)
+    {
+        free(leafNode->key);
+        free(leafNode);
+        return NULL;
+    }
+    strcpy(leafNode->value, value);
 
     return leafNode;
 }
@@ -635,26 +644,91 @@ Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char 
     addChild((Node *)newNode, newKeyChar, (Node *)makeLeafNode(newKey, newValue));
 }
 
-// Node *insert(Node *node, char *key, Node *leaf, int depth){
-//     if(node == NULL){
-//         return leaf;
-//     }
+Node *insert(Node **root, char *key, void *value, int depth) {
+    if (*root == NULL) {
+        *root = makeLeafNode(key, value);
+        return *root;
+    }
 
-//     if(node->type == LEAF){
-//         Node4 *newNode = makeNode4();
-//         char *key2 = loadKey(node);
-//         int count = 0;
-//         for(int i = depth; key[i] == key2[i]; i=i+1){
-//             newNode->prefix[i-depth] = key[i];
-//             count = i;
-//         }
-//         newNode->prefixLen = count-depth;
-//         depth += newNode->prefixLen;
-//         addChild(newNode, key[depth], leaf);
-//         addChild(newNode, key2[depth], node);
-//         // replace(node, newNode)
+    Node *node = *root;
 
-//         free(key2);
-//         return (Node *)newNode;
-//     }
-// }
+    if (node->type == LEAF) {
+        Node4 *newNode = makeNode4();
+        char *key2 = loadKey(node);
+        int count = 0;
+        for (int i = depth; key[i] == key2[i]; i = i + 1) {
+            newNode->prefix[i - depth] = key[i];
+            count++;
+        }
+        newNode->prefixLen = count - depth;
+        depth += newNode->prefixLen;
+
+        addChild(newNode, key[depth], makeLeafNode(key, value));
+        addChild(newNode, key2[depth], node);
+
+        *root = (Node *)newNode;
+
+        free(key2);
+        return *root;
+    }
+
+    return NULL;
+}
+
+void freeNode(Node *node) {
+    if (node == NULL) {
+        return;
+    }
+
+    switch (node->type) {
+        case NODE4: {
+            Node4 *node4 = (Node4 *)node;
+            for (int i = 0; i < node4->count; ++i) {
+                freeNode(node4->children[i]);
+            }
+            break;
+        }
+        case NODE16: {
+            Node16 *node16 = (Node16 *)node;
+            for (int i = 0; i < node16->count; ++i) {
+                freeNode(node16->children[i]);
+            }
+            break;
+        }
+        case NODE48: {
+            Node48 *node48 = (Node48 *)node;
+            for (int i = 0; i < 48; ++i) {
+                if (node48->keys[i] != EMPTY_KEY) {
+                    freeNode(node48->children[i]);
+                }
+            }
+            break;
+        }
+        case NODE256: {
+            Node256 *node256 = (Node256 *)node;
+            for (int i = 0; i < 256; ++i) {
+                if (node256->children[i] != NULL) {
+                    freeNode(node256->children[i]);
+                }
+            }
+            break;
+        }
+        case LEAF:{
+            LeafNode *leafNode = (LeafNode *)node;
+            free(leafNode->key);
+            free(leafNode->value);
+            break;
+        }
+        default:
+            break;
+    }
+
+    free(node);
+}
+
+void freeART(ART *art) {
+    if (art != NULL) {
+        freeNode(art->root);
+        free(art);
+    }
+}
