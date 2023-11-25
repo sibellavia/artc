@@ -6,6 +6,9 @@
  * Released under MIT License. Please refer to LICENSE for details
 */
 
+#ifndef ART_H
+#define ART_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -222,10 +225,10 @@ LeafNode *makeLeafNode(char *key, void *value);
 
 int findEmptyIndexForChildren(Node48 *node48);
 
-Node *growFromNode4toNode16(Node *node);
+Node *growFromNode4toNode16(Node **nodePtr);
 Node *growFromNode16toNode48(Node *node);
 Node *growFromNode48toNode256(Node *node);
-Node *grow(Node *node);
+Node *grow(Node **node);
 
 char *loadKey(Node *node);
 
@@ -242,3 +245,5 @@ Node *insert(Node **root, char *key, void *value, int depth);
 void freeNode(Node *node);
 
 void freeART(ART *art);
+
+#endif // ART_H
