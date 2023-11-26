@@ -73,6 +73,27 @@ void test_transitionFromNode4ToNode16(void) {
     freeART(art);
 }
 
+void test_transitionFromNode16ToNode48(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    TEST_ASSERT_NOT_NULL(art);
+    TEST_ASSERT_NULL(art->root);
+
+    int numKeysToInsert = 18;
+
+    for (int i = 0; i < numKeysToInsert; i++) {
+        char key[10];
+        sprintf(key, "key%d", i);
+        void *value = "value";
+        insert(&(art->root), key, value, 0);
+    }
+
+    // Verifica che il nodo radice sia ora un Node48
+    TEST_ASSERT_NOT_NULL(art->root);
+    TEST_ASSERT_EQUAL(art->root->type, NODE48);
+
+    freeART(art);
+}
+
 
 int main(void) {
     UNITY_BEGIN();
@@ -82,6 +103,8 @@ int main(void) {
     RUN_TEST(test_insertMultipleNodes); 
 
     RUN_TEST(test_transitionFromNode4ToNode16);
+    
+    RUN_TEST(test_transitionFromNode16ToNode48);
     
     return UNITY_END();
 }
