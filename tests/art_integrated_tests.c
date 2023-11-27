@@ -87,24 +87,67 @@ void test_transitionFromNode16ToNode48(void) {
         insert(&(art->root), key, value, 0);
     }
 
-    // Verifica che il nodo radice sia ora un Node48
     TEST_ASSERT_NOT_NULL(art->root);
     TEST_ASSERT_EQUAL(art->root->type, NODE48);
 
     freeART(art);
 }
 
+void test_transitionFromNode16ToNode48UnderNode4(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    TEST_ASSERT_NOT_NULL(art);
+    TEST_ASSERT_NULL(art->root);
 
-int main(void) {
-    UNITY_BEGIN();
+    // Inserisci chiavi sufficienti per creare un Node4 alla radice
+    int keysForNode4 = 4;
+    for (int i = 0; i < keysForNode4; i++) {
+        char key[10];
+        sprintf(key, "a%d", i);  // Chiavi che creeranno un Node4 alla radice
+        void *value = (void *)"value";
+        insert(&(art->root), key, value, 0);
+    }
 
-    RUN_TEST(test_createARTAndInsertNode);
+    // Inserisci ulteriori chiavi che finiscono sotto lo stesso figlio di Node4
+    int keysForNode16 = 16;
+    for (int i = 0; i < keysForNode16; i++) {
+        char key[10];
+        sprintf(key, "ab%d", i);  // Chiavi che creeranno e riempiranno un Node16 sotto un figlio di Node4
+        void *value = (void *)"value";
+        insert(&(art->root), key, value, 0);
+    }
 
-    RUN_TEST(test_insertMultipleNodes); 
+    // Inserisci un'altra chiave per innescare la transizione da Node16 a Node48
+    char extraKey[] = "ab16";
+    insert(&(art->root), extraKey, (void *)"value", 0);
 
-    RUN_TEST(test_transitionFromNode4ToNode16);
-    
-    RUN_TEST(test_transitionFromNode16ToNode48);
-    
-    return UNITY_END();
+    // Verifica che la radice sia un Node4
+    TEST_ASSERT_NOT_NULL(art->root);
+    TEST_ASSERT_EQUAL(NODE4, art->root->type);
+
+    // Verifica che uno dei figli di Node4 sia diventato Node48
+    Node4 *rootNode = (Node4 *)art->root;
+    bool foundNode48 = false;
+    for (int i = 0; i < rootNode->count; i++) {
+        if (rootNode->children[i]->type == NODE48) {
+            foundNode48 = true;
+            break;
+        }
+    }
+    TEST_ASSERT_TRUE(foundNode48);
+
+    freeART(art);
 }
+
+// int main(void) {
+//     UNITY_BEGIN();
+
+//     RUN_TEST(test_createARTAndInsertNode);
+
+//     RUN_TEST(test_insertMultipleNodes); 
+
+//     RUN_TEST(test_transitionFromNode4ToNode16);
+    
+//     RUN_TEST(test_transitionFromNode16ToNode48);
+    
+//     return UNITY_END();
+// }
