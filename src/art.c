@@ -7,8 +7,8 @@
 */
 
 #include "art.h"
-
-// #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -17,7 +17,7 @@ Node *createRootNode() {
     }
 
     root->node.type = NODE4;
-    root->prefixLen = 0;
+    root->node.prefixLen = 0;
 
     for (int i = 0; i < 4; i++) {
         root->keys[i] = EMPTY_KEY;
@@ -138,76 +138,80 @@ Node *findChild(Node *node, char byte){
 
 
 int getPrefixLength(Node *node) {
-    switch (node->type){
-        case NODE4:
-            return ((Node4 *) node)->prefixLen;
-        case NODE16:
-            return ((Node16 *) node)->prefixLen;
-        case NODE48:
-            return ((Node48 *) node)->prefixLen;
-        case NODE256:
-            return ((Node256 *) node)->prefixLen;
-        default:
-            return INVALID;
+    if (node == NULL) {
+        return INVALID;
     }
+    return node->prefixLen;
 }
 
-int checkPrefix(Node *node, char *key, int depth){
+// int checkPrefix(Node *node, char *key, int depth){
+//     int count = 0;
+
+//     switch(node->type){
+//         case NODE4:{
+//                 Node4 *node4 = (Node4 *)node;
+                
+//                 for (int i = 0; i < node4->prefixLen; i++){
+//                     if(node4->prefix[i] == key[depth + i]){
+//                         count++;
+//                     } else {
+//                         return count;
+//                     }
+//                 }
+//             }
+//             break;
+//         case NODE16:{
+//                 Node16 *node16 = (Node16 *)node;
+                
+//                 for (int i = 0; i < node16->prefixLen; i++){
+//                     if(node16->prefix[i] == key[depth + i]){
+//                         count++;
+//                     } else {
+//                         return count;
+//                     }
+//                 }
+//             }
+//             break;
+//         case NODE48:{
+//                 Node48 *node48 = (Node48 *)node;
+                
+//                 for (int i = 0; i < node48->prefixLen; i++){
+//                     if(node48->prefix[i] == key[depth + i]){
+//                         count++;
+//                     } else {
+//                         return count;
+//                     }
+//                 }
+//             }
+//             break;
+//         case NODE256:{
+//                 Node256 *node256 = (Node256 *)node;
+                
+//                 for (int i = 0; i < node256->prefixLen; i++){
+//                     if(node256->prefix[i] == key[depth + i]){
+//                         count++;
+//                     } else {
+//                         return count;
+//                     }
+//                 }
+//             }
+//             break;
+//         default:
+//             return INVALID;
+//     }
+
+//     return count;
+// }
+
+int checkPrefix(Node *node, char *key, int depth) {
     int count = 0;
-
-    switch(node->type){
-        case NODE4:{
-                Node4 *node4 = (Node4 *)node;
-                
-                for (int i = 0; i < node4->prefixLen; i++){
-                    if(node4->prefix[i] == key[depth + i]){
-                        count++;
-                    } else {
-                        return count;
-                    }
-                }
-            }
+    int maxLength = MIN(node->prefixLen, strlen(key) - depth);
+    for (int i = 0; i < MIN(node->prefixLen, maxLength); i++) {
+        if (node->prefix[i] != key[depth + i]) {
             break;
-        case NODE16:{
-                Node16 *node16 = (Node16 *)node;
-                
-                for (int i = 0; i < node16->prefixLen; i++){
-                    if(node16->prefix[i] == key[depth + i]){
-                        count++;
-                    } else {
-                        return count;
-                    }
-                }
-            }
-            break;
-        case NODE48:{
-                Node48 *node48 = (Node48 *)node;
-                
-                for (int i = 0; i < node48->prefixLen; i++){
-                    if(node48->prefix[i] == key[depth + i]){
-                        count++;
-                    } else {
-                        return count;
-                    }
-                }
-            }
-            break;
-        case NODE256:{
-                Node256 *node256 = (Node256 *)node;
-                
-                for (int i = 0; i < node256->prefixLen; i++){
-                    if(node256->prefix[i] == key[depth + i]){
-                        count++;
-                    } else {
-                        return count;
-                    }
-                }
-            }
-            break;
-        default:
-            return INVALID;
+        }
+        count++;
     }
-
     return count;
 }
 
@@ -300,7 +304,7 @@ Node4 *makeNode4(){
     }
 
     node4->node.type = NODE4;
-    node4->prefixLen = 0;
+    node4->node.prefixLen = 0;
 
     for (int i = 0; i < 4; i++){
         node4->keys[i] = 0;
@@ -319,7 +323,7 @@ Node16 *makeNode16(){
     }
 
     node16->node.type = NODE16;
-    node16->prefixLen = 0;
+    node16->node.prefixLen = 0;
 
     for (int i = 0; i < 16; i++){
         node16->keys[i] = 0;
@@ -338,7 +342,7 @@ Node48 *makeNode48() {
     }
 
     node48->node.type = NODE48;
-    node48->prefixLen = 0;
+    node48->node.prefixLen = 0;
 
     memset(node48->keys, EMPTY_KEY, 256);
 
@@ -356,7 +360,7 @@ Node256 *makeNode256(){
     }
 
     node256->node.type = NODE256;
-    node256->prefixLen = 0;
+    node256->node.prefixLen = 0;
 
     for (int i = 0; i < 256; i++){
         node256->children[i] = NULL;
@@ -412,8 +416,8 @@ Node *growFromNode4toNode16(Node **nodePtr) {
     }
     
     // Copy prefix from oldNode to newNode.
-    memcpy(newNode->prefix, oldNode->prefix, oldNode->prefixLen);
-    newNode->prefixLen = oldNode->prefixLen;
+    memcpy(newNode->node.prefix, oldNode->node.prefix, oldNode->node.prefixLen);
+    newNode->node.prefixLen = oldNode->node.prefixLen;
 
     // Copy each children and key from oldNode to newNode
     for (int i = 0; i < oldNode->count; i++) {
@@ -433,35 +437,47 @@ Node *growFromNode4toNode16(Node **nodePtr) {
     return (Node *)newNode;
 }
 
-
-Node *growFromNode16toNode48(Node *node){
-    Node16 *node16 = (Node16 *)node;
+Node *growFromNode16toNode48(Node **nodePtr) {
+    Node16 *oldNode = (Node16 *)*nodePtr;
 
     Node48 *newNode = makeNode48();
+    if (newNode == NULL) {
+        return NULL;
+    }
 
-    memcpy(newNode->prefix, node16->prefix, node16->prefixLen);
-    newNode->prefixLen = node16->prefixLen;
+    memcpy(newNode->node.prefix, oldNode->node.prefix, oldNode->node.prefixLen);
+    newNode->node.prefixLen = oldNode->node.prefixLen;
 
-    for (int i = 0; i < node16->count; i++){
-        char keyChar = node16->keys[i];
+    // Copy each child and key from oldNode to newNode
+    for (int i = 0; i < oldNode->count; i++) {
+        char keyChar = oldNode->keys[i];
         unsigned char index = (unsigned char)keyChar;
 
         int childIndex = findEmptyIndexForChildren(newNode);
-        newNode->keys[index] = childIndex;
-        newNode->children[childIndex] = node16->children[i];
+        if (childIndex == -1) {
+            free(newNode);
+            return NULL;
+        }
+
+        newNode->keys[index] = (unsigned char)childIndex + 1; // +1 because 0 represents empty in Node48
+        newNode->children[childIndex] = oldNode->children[i];
     }
 
-    free(node16);
+    free(oldNode);
+
+    *nodePtr = (Node *)newNode;
+
     return (Node *)newNode;
 }
+
 
 Node *growFromNode48toNode256(Node *node){
     Node48 *node48 = (Node48 *)node;
 
     Node256 *newNode = makeNode256();
 
-    memcpy(newNode->prefix, node48->prefix, node48->prefixLen);
-    newNode->prefixLen = node48->prefixLen;
+    memcpy(newNode->node.prefix, node48->node.prefix, node48->node.prefixLen);
+    newNode->node.prefixLen = node48->node.prefixLen;
 
     int childIndex = 0;
 
@@ -540,7 +556,7 @@ Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode){
 
         node->count++;
     } else {
-        grow(parentNode);
+        grow(&parentNode);
         addChild(parentNode, keyChar, childNode);
     }
 
@@ -566,7 +582,7 @@ Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode){
 
         node->count++;
     } else {
-        parentNode = grow(parentNode);
+        parentNode = grow(&parentNode);
         addChild(parentNode, keyChar, childNode);
     }
 
@@ -589,7 +605,7 @@ Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode) {
             node->children[childIndex] = childNode;
         } else {
             // Full node, need to turn it into a Node256
-            parentNode = grow(parentNode);
+            grow(&parentNode);
             addChild(parentNode, keyChar, childNode);
         }
     } else {
@@ -640,10 +656,10 @@ Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char 
     // Check the common prefix between the two keys
     int prefixLen = 0;
     while (existingKey[depth + prefixLen] == newKey[depth + prefixLen]) {
-        newNode->prefix[prefixLen] = existingKey[depth + prefixLen];
+        newNode->node.prefix[prefixLen] = existingKey[depth + prefixLen];
         prefixLen++;
     }
-    newNode->prefixLen = prefixLen;
+    newNode->node.prefixLen = prefixLen;
 
     // Add the existing leaf and the new value to Node4
     char existingKeyChar = existingKey[depth + prefixLen];
@@ -651,6 +667,8 @@ Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char 
 
     addChild((Node *)newNode, existingKeyChar, leafNode);
     addChild((Node *)newNode, newKeyChar, (Node *)makeLeafNode(newKey, newValue));
+
+    return newNode;
 }
 
 int charToIndex(char c) {
@@ -669,7 +687,6 @@ void replaceChildInParent(Node *parent, Node *oldChild, Node *newChild){
     if (parent == NULL){
         return;
     }
-
     switch (parent->type){
     case NODE4:{
         Node4 *node4 = (Node4 *)parent;
@@ -710,6 +727,14 @@ void replaceChildInParent(Node *parent, Node *oldChild, Node *newChild){
                 node256->children[i] = newChild;
                 return;
             }
+        }
+        break;
+    }
+    case LEAF: {
+        LeafNode *leafNode = (LeafNode *)parent;
+        if (leafNode == (LeafNode *)oldChild){
+            parent = (Node *)newChild;
+            return;
         }
         break;
     }
@@ -756,7 +781,7 @@ bool isNodeFull(Node *node) {
 
 Node *insert(Node **root, char *key, void *value, int depth) {
     if (*root == NULL) {
-        *root = makeLeafNode(key, value);
+        *root = (Node *)makeLeafNode(key, value);
         return *root;
     }
 
@@ -767,14 +792,14 @@ Node *insert(Node **root, char *key, void *value, int depth) {
         char *key2 = loadKey(node);
         int count = 0;
         for (int i = depth; key[i] == key2[i]; i = i + 1) {
-            newNode->prefix[i - depth] = key[i];
+            newNode->node.prefix[i - depth] = key[i];
             count++;
         }
-        newNode->prefixLen = count - depth;
-        depth += newNode->prefixLen;
+        newNode->node.prefixLen = count - depth;
+        depth += newNode->node.prefixLen;
 
-        addChild(newNode, key[depth], makeLeafNode(key, value));
-        addChild(newNode, key2[depth], node);
+        addChild((Node *)newNode, key[depth], makeLeafNode(key, value));
+        addChild((Node *)newNode, key2[depth], node);
 
         *root = (Node *)newNode;
 
@@ -808,14 +833,14 @@ Node *insert(Node **root, char *key, void *value, int depth) {
                         int commonPrefixLength = checkPrefix((Node *)existingLeaf, key, depth);
 
                         // Copy common prefix in new Node4
-                        memcpy(newNode->prefix, key + depth, commonPrefixLength);
-                        newNode->prefixLen = commonPrefixLength;
+                        memcpy(newNode->node.prefix, key + depth, commonPrefixLength);
+                        newNode->node.prefixLen = commonPrefixLength;
 
                         // Calculate new depth after common prefix
                         int newDepth = depth + commonPrefixLength;
 
                         // Add the existing leaf node and the new leaf node to Node4
-                        int existingChildIndex = charToIndex(existingLeaf->key[newDepth]);
+                        int existingChildIndex = charToIndex((Node*)existingLeaf->key[newDepth]);
                         int newChildIndex = charToIndex(key[newDepth]);
 
                         if (existingChildIndex == -1 || newChildIndex == -1){
@@ -823,8 +848,8 @@ Node *insert(Node **root, char *key, void *value, int depth) {
                             return NULL;
                         }
 
-                        newNode->children[existingChildIndex] = existingLeaf;
-                        newNode->children[newChildIndex] = makeLeafNode(key + newDepth, value);
+                        newNode->children[existingChildIndex] = (Node *)existingLeaf;
+                        newNode->children[newChildIndex] = (Node *)makeLeafNode(key + newDepth, value);
                         replaceChildInParent(node, child, (Node *)newNode);
                     }
                 }
@@ -908,10 +933,10 @@ void freeART(ART *art) {
     }
 }
 
-// int main(void){
-//     UNITY_BEGIN();
+int main(void){
+    UNITY_BEGIN();
 
-//     RUN_TEST(test_transitionFromNode4ToNode16);
+    RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
 
-//     return UNITY_END();
-// }
+    return UNITY_END();
+}

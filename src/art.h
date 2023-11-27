@@ -53,6 +53,8 @@ typedef enum {
 
 typedef struct Node {
     NodeType type;
+    char prefix[MAX_PREFIX_LENGTH];
+    int prefixLen;
 } Node;
 
 /**
@@ -83,8 +85,6 @@ typedef struct Node {
 */
 typedef struct {
     Node node;
-    char prefix[MAX_PREFIX_LENGTH];
-    int prefixLen;
     char keys[4];
     Node *children[4];
     int count;
@@ -92,8 +92,6 @@ typedef struct {
 
 typedef struct {
     Node node;
-    char prefix[MAX_PREFIX_LENGTH];
-    int prefixLen;
     char keys[16];
     Node *children[16];
     int count;
@@ -101,16 +99,12 @@ typedef struct {
 
 typedef struct {
     Node node;
-    char prefix[MAX_PREFIX_LENGTH];
-    int prefixLen;
     unsigned char keys[256];
     Node *children[48];
 } Node48;
 
 typedef struct {
     Node node;
-    char prefix[MAX_PREFIX_LENGTH];
-    int prefixLen;
     Node *children[256];
 } Node256;
 
@@ -226,7 +220,7 @@ LeafNode *makeLeafNode(char *key, void *value);
 int findEmptyIndexForChildren(Node48 *node48);
 
 Node *growFromNode4toNode16(Node **nodePtr);
-Node *growFromNode16toNode48(Node *node);
+Node *growFromNode16toNode48(Node **nodePtr);
 Node *growFromNode48toNode256(Node *node);
 Node *grow(Node **node);
 
