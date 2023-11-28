@@ -149,5 +149,7 @@ void test_transitionFromNode16ToNode48UnderNode4(void) {
     
 //     RUN_TEST(test_transitionFromNode16ToNode48);
     
+//     RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
+
 //     return UNITY_END();
 // }

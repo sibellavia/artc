@@ -79,6 +79,31 @@ Node *findChildBinary(Node *genericNode, char byte)
     switch (genericNode->type)
     {
     case NODE4:
+    {
+        Node4 *node = (Node4 *)genericNode;
+        int low = 0;
+        int high = node->count - 1;
+
+        while (low <= high)
+        {
+            int mid = low + (high - low) / 2;
+            char midByte = node->keys[mid];
+
+            if (midByte < byte)
+            {
+                low = mid + 1;
+            }
+            else if (midByte > byte)
+            {
+                high = mid - 1;
+            }
+            else
+            {
+                return node->children[mid];
+            }
+        }
+        break;
+    }
     case NODE16:
     {
         Node16 *node = (Node16 *)genericNode;
