@@ -130,7 +130,8 @@ void test_createRootNode_PrefixLenShouldBeZero(void) {
     Node *root = createRootNode();
     TEST_ASSERT_NOT_NULL(root);
     Node4 *root4 = (Node4 *)root;
-    TEST_ASSERT_EQUAL_INT(0, root4->prefixLen);
+    
+    TEST_ASSERT_EQUAL_INT(0, root4->node.prefixLen);
     free(root);
 }
 
@@ -156,7 +157,7 @@ void test_createRootNode_WrongPrefixLen(void) {
     Node *root = createRootNode();
     TEST_ASSERT_NOT_NULL(root);
     Node4 *root4 = (Node4 *)root;
-    TEST_ASSERT_NOT_EQUAL_INT(1, root4->prefixLen);  
+    TEST_ASSERT_NOT_EQUAL_INT(1, root4->node.prefixLen);  
     free(root);
 }
 
@@ -298,7 +299,7 @@ void test_getPrefixLength_Node4(void) {
     Node4 *node = makeNode4();
     TEST_ASSERT_NOT_NULL(node);
 
-    node->prefixLen = 3;
+    node->node.prefixLen = 3;
     int result = getPrefixLength((Node *)node);
     TEST_ASSERT_EQUAL(3, result);
 
@@ -309,7 +310,7 @@ void test_getPrefixLength_Node16(void) {
     Node16 *node = makeNode16();
     TEST_ASSERT_NOT_NULL(node);
 
-    node->prefixLen = 4;
+    node->node.prefixLen = 4;
     int result = getPrefixLength((Node *)node);
     TEST_ASSERT_EQUAL(4, result);
 
@@ -320,7 +321,7 @@ void test_getPrefixLength_Node48(void) {
     Node48 *node = makeNode48();
     TEST_ASSERT_NOT_NULL(node);
 
-    node->prefixLen = 5;
+    node->node.prefixLen = 5;
     int result = getPrefixLength((Node *)node);
     TEST_ASSERT_EQUAL(5, result);
 
@@ -331,7 +332,7 @@ void test_getPrefixLength_Node256(void) {
     Node256 *node = makeNode256();
     TEST_ASSERT_NOT_NULL(node);
 
-    node->prefixLen = 6;
+    node->node.prefixLen = 6;
     int result = getPrefixLength((Node *)node);
     TEST_ASSERT_EQUAL(6, result);
 
@@ -349,8 +350,8 @@ void test_getPrefixLength_InvalidNodeType(void) {
 
 void test_checkPrefix_FullMatch_Node4(void) {
     Node4 *node = makeNode4();
-    strcpy(node->prefix, "test");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "test");
+    node->node.prefixLen = 4;
 
     char *key = "testkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -361,8 +362,8 @@ void test_checkPrefix_FullMatch_Node4(void) {
 
 void test_checkPrefix_NoMatch_Node4(void) {
     Node4 *node = makeNode4();
-    strcpy(node->prefix, "abcd");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "abcd");
+    node->node.prefixLen = 4;
 
     char *key = "xyzkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -373,8 +374,8 @@ void test_checkPrefix_NoMatch_Node4(void) {
 
 void test_checkPrefix_PartialMatch_Node4(void) {
     Node4 *node = makeNode4();
-    strcpy(node->prefix, "abc");
-    node->prefixLen = 3;
+    strcpy(node->node.prefix, "abc");
+    node->node.prefixLen = 3;
 
     char *key = "abxyz";
     int result = checkPrefix((Node *)node, key, 0);
@@ -385,8 +386,8 @@ void test_checkPrefix_PartialMatch_Node4(void) {
 
 void test_checkPrefix_DifferentDepths_Node4(void) {
     Node4 *node = makeNode4();
-    strcpy(node->prefix, "hello");
-    node->prefixLen = 5;
+    strcpy(node->node.prefix, "hello");
+    node->node.prefixLen = 5;
 
     char *key = "worldhello";
     int result = checkPrefix((Node *)node, key, 5);
@@ -397,8 +398,8 @@ void test_checkPrefix_DifferentDepths_Node4(void) {
 
 void test_checkPrefix_FullMatch_Node16(void) {
     Node16 *node = makeNode16();
-    strcpy(node->prefix, "test");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "test");
+    node->node.prefixLen = 4;
 
     char *key = "testkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -409,8 +410,8 @@ void test_checkPrefix_FullMatch_Node16(void) {
 
 void test_checkPrefix_NoMatch_Node16(void) {
     Node16 *node = makeNode16();
-    strcpy(node->prefix, "abcd");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "abcd");
+    node->node.prefixLen = 4;
 
     char *key = "xyzkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -421,8 +422,8 @@ void test_checkPrefix_NoMatch_Node16(void) {
 
 void test_checkPrefix_PartialMatch_Node16(void) {
     Node16 *node = makeNode16();
-    strcpy(node->prefix, "abc");
-    node->prefixLen = 3;
+    strcpy(node->node.prefix, "abc");
+    node->node.prefixLen = 3;
 
     char *key = "abxyz";
     int result = checkPrefix((Node *)node, key, 0);
@@ -433,8 +434,8 @@ void test_checkPrefix_PartialMatch_Node16(void) {
 
 void test_checkPrefix_DifferentDepths_Node16(void) {
     Node16 *node = makeNode16();
-    strcpy(node->prefix, "hello");
-    node->prefixLen = 5;
+    strcpy(node->node.prefix, "hello");
+    node->node.prefixLen = 5;
 
     char *key = "worldhello";
     int result = checkPrefix((Node *)node, key, 5);
@@ -445,8 +446,8 @@ void test_checkPrefix_DifferentDepths_Node16(void) {
 
 void test_checkPrefix_FullMatch_Node48(void) {
     Node48 *node = makeNode48();
-    strcpy(node->prefix, "test");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "test");
+    node->node.prefixLen = 4;
 
     char *key = "testkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -457,8 +458,8 @@ void test_checkPrefix_FullMatch_Node48(void) {
 
 void test_checkPrefix_NoMatch_Node48(void) {
     Node48 *node = makeNode48();
-    strcpy(node->prefix, "abcd");
-    node->prefixLen = 4;
+    strcpy(node->node.prefix, "abcd");
+    node->node.prefixLen = 4;
 
     char *key = "xyzkey";
     int result = checkPrefix((Node *)node, key, 0);
@@ -469,8 +470,8 @@ void test_checkPrefix_NoMatch_Node48(void) {
 
 void test_checkPrefix_PartialMatch_Node48(void) {
     Node48 *node = makeNode48();
-    strcpy(node->prefix, "abc");
-    node->prefixLen = 3;
+    strcpy(node->node.prefix, "abc");
+    node->node.prefixLen = 3;
 
     char *key = "abxyz";
     int result = checkPrefix((Node *)node, key, 0);
@@ -481,8 +482,8 @@ void test_checkPrefix_PartialMatch_Node48(void) {
 
 void test_checkPrefix_DifferentDepths_Node48(void) {
     Node48 *node = makeNode48();
-    strcpy(node->prefix, "hello");
-    node->prefixLen = 5;
+    strcpy(node->node.prefix, "hello");
+    node->node.prefixLen = 5;
 
     char *key = "worldhello";
     int result = checkPrefix((Node *)node, key, 5);
@@ -490,6 +491,47 @@ void test_checkPrefix_DifferentDepths_Node48(void) {
 
     free(node);
 }
+
+/* Insert algorithm */
+
+void test_insert_intoEmptyTree() {
+    ART *art = initializeAdaptiveRadixTree();
+    TEST_ASSERT_NOT_NULL(art);
+    TEST_ASSERT_NULL(art->root);
+
+    char *key = "test";
+    void *value = "testvalue";
+    insert(&(art->root), key, value, 0);
+
+    TEST_ASSERT_NOT_NULL(art->root);
+    TEST_ASSERT_EQUAL(LEAF, art->root->type);
+    TEST_ASSERT_EQUAL_STRING(key, ((LeafNode *)art->root)->key);
+    TEST_ASSERT_EQUAL_STRING(value, ((LeafNode *)art->root)->value);
+
+    freeART(art);
+}
+
+void test_insert_intoTreeWithOneLeaf() {
+    ART *art = initializeAdaptiveRadixTree();
+    char *key1 = "test";
+    void *value1 = "testvalue1";
+    insert(&(art->root), key1, value1, 0);
+
+    char *key2 = "tesla";
+    void *value2 = "testvalue2";
+    insert(&(art->root), key2, value2, 0);
+
+    TEST_ASSERT_NOT_NULL(art->root);
+    TEST_ASSERT_EQUAL(NODE4, art->root->type);
+    
+    Node4 *rootNode = (Node4 *)art->root;
+    TEST_ASSERT_EQUAL(2, rootNode->count);
+    TEST_ASSERT_EQUAL_STRING(key1, ((LeafNode *)rootNode->children[1])->key);
+    TEST_ASSERT_EQUAL_STRING(key2, ((LeafNode *)rootNode->children[0])->key);
+
+    freeART(art);
+}
+
 
 /* Node *search(Node *node, char *key, int depth) */
 // void test_search_NullNode(void) {
@@ -596,6 +638,10 @@ int main(void){
     RUN_TEST(test_checkPrefix_NoMatch_Node48);
     RUN_TEST(test_checkPrefix_PartialMatch_Node48);
     RUN_TEST(test_checkPrefix_DifferentDepths_Node48);
+
+    /* Insert algorithm */
+    RUN_TEST(test_insert_intoEmptyTree);
+    RUN_TEST(test_insert_intoTreeWithOneLeaf);
 
     /* Node *search(Node *node, char *key, int depth) */
     // RUN_TEST(test_search_NullNode);

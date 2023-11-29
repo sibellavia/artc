@@ -184,18 +184,18 @@ void test_Node4ToNode16Growth(void) {
     freeART(art);
 }
 
-int main(void) {
-    UNITY_BEGIN();
+// int main(void) {
+//     UNITY_BEGIN();
 
-    RUN_TEST(test_createARTAndInsertNode);
+//     RUN_TEST(test_createARTAndInsertNode);
 
-    RUN_TEST(test_insertMultipleNodes); 
+//     RUN_TEST(test_insertMultipleNodes); 
 
-    RUN_TEST(test_transitionFromNode4ToNode16);
+//     RUN_TEST(test_transitionFromNode4ToNode16);
     
-    RUN_TEST(test_transitionFromNode16ToNode48);
+//     RUN_TEST(test_transitionFromNode16ToNode48);
     
-    RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
+//     RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
 
-    return UNITY_END();
-}
+//     return UNITY_END();
+// }

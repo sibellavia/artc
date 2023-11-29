@@ -240,4 +240,6 @@ void freeNode(Node *node);
 
 void freeART(ART *art);
 
+void setPrefix(Node *node, const char *prefix, int prefixLen);
+
 #endif // ART_H

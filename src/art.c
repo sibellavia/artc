@@ -9,6 +9,7 @@
 #include "art.h"
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
+// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -803,6 +804,20 @@ bool isNodeFull(Node *node) {
     }
 }
 
+void setPrefix(Node *node, const char *prefix, int prefixLen) {
+    if (prefixLen > MAX_PREFIX_LENGTH) {
+        prefixLen = MAX_PREFIX_LENGTH;
+    }
+
+    memcpy(node->prefix, prefix, prefixLen);
+
+    if (prefixLen < MAX_PREFIX_LENGTH) {
+        node->prefix[prefixLen] = '\0';
+    }
+
+    node->prefixLen = prefixLen;
+}
+
 
 /**
  * Inserts a new key-value pair into the tree rooted at `root`.
@@ -813,97 +828,61 @@ bool isNodeFull(Node *node) {
  * @param depth The current depth in the tree.
  * @return The updated root of the tree after insertion.
  */
-Node *insert(Node **root, char *key, void *value, int depth) {
-    if (*root == NULL) {
+
+Node *insert(Node **root, char *key, void *value, int depth){
+    if(*root == NULL){
         *root = (Node *)makeLeafNode(key, value);
         return *root;
     }
 
     Node *node = *root;
+    Node **parentPointer = root;
 
-    if (node->type == LEAF) {
-        Node4 *newNode = makeNode4();
-        char *key2 = loadKey(node);
-        int count = 0;
-        for (int i = depth; key[i] == key2[i]; i = i + 1) {
-            newNode->node.prefix[i - depth] = key[i];
-            count++;
+    while (node != NULL){
+        
+        /**
+         * This code snippet checks if the given node is a leaf node and performs the necessary operations for inserting a key-value pair into the tree.
+         * If the node is a leaf node and the key already exists in the leaf node, the insert operation is rejected as collision management.
+         * If the key is different from the existing key in the leaf node, the leaf node is transformed into an internal node (Node4).
+         * The prefix and prefix length of the new Node4 are set based on the common prefix between the existing key and the new key.
+         * The existing leaf node and the new leaf node (created from the new key-value pair) are added as children to the Node4.
+         * The parent pointer is updated to point to the new Node4.
+         * Finally, the modified root node is returned.
+         *
+         * @param root The root node of the tree.
+         * @param node The current node being checked.
+         * @param key The key to be inserted.
+         * @param value The value associated with the key.
+         * @param parentPointer The pointer to the parent node of the current node.
+         * @param depth The current depth in the tree.
+         * @return The modified root node after the insert operation.
+         */
+        if (node->type == LEAF){
+            // Compare current leaf's key with the key we want to insert
+            LeafNode *leafNode = (LeafNode *)*root;
+            if (strcmp(leafNode->key, key) == 0){
+                // Key already present, we reject the insert as collision management
+                return *root;
+            }
+            else{
+                // Keys are different, we have to transform the leaf node in an internal node
+                Node4 *newNode4 = makeNode4();
+
+                // Set the prefix and the prefix length of new Node4
+                int commonPrefixLength = checkPrefix((Node *)leafNode, key, depth);
+                setPrefix(newNode4, key, commonPrefixLength);
+
+                // Add existing leaf and new leaf to Node4
+                addChildToNode4(newNode4, leafNode->key[depth], node);
+                addChildToNode4(newNode4, key[depth], (Node *)makeLeafNode(key, value));
+
+                // Update the parent pointer to the new Node4
+                *parentPointer = (Node *)newNode4;
+                return *root;
+            }
         }
-        newNode->node.prefixLen = count - depth;
-        depth += newNode->node.prefixLen;
 
-        addChild((Node *)newNode, key[depth], makeLeafNode(key, value));
-        addChild((Node *)newNode, key2[depth], node);
-
-        *root = (Node *)newNode;
-
-        free(key2);
-        return *root;
-    } else {
         // Here we handle the internal nodes
-        Node **parentPointer = root;
-        while (node) {
-            if (depth == strlen(key)){
-                // We reached the end of the key we want to add
-                // Collision: we reject the insert
-                return *root;
-            }
-
-            Node *child = findChild(node, key[depth]);
-            if(child){
-                if(child->type == LEAF){
-                    /* If child is a LEAF and key doesn't match 
-                    then we have to transform the LEAF in an internal
-                    node and add both keys */
-                    LeafNode *existingLeaf = (LeafNode *)child;
-                    if (strcmp(existingLeaf->key, key) == 0){
-                        // Key already present, we reject the insert as collision management
-                        return NULL;
-                    } else {
-                        // Create a new Node4 to replace existing LeafNode
-                        Node4 *newNode = makeNode4();
-
-                        // Calculate the common prefix and the point in which the keys differ
-                        int commonPrefixLength = checkPrefix((Node *)existingLeaf, key, depth);
-
-                        // Copy common prefix in new Node4
-                        memcpy(newNode->node.prefix, key + depth, commonPrefixLength);
-                        newNode->node.prefixLen = commonPrefixLength;
-
-                        // Calculate new depth after common prefix
-                        int newDepth = depth + commonPrefixLength;
-
-                        // Add the existing leaf node and the new leaf node to Node4
-                        int existingChildIndex = charToIndex((Node*)existingLeaf->key[newDepth]);
-                        int newChildIndex = charToIndex(key[newDepth]);
-
-                        if (existingChildIndex == -1 || newChildIndex == -1){
-                            // Error: not a valid character
-                            return NULL;
-                        }
-
-                        newNode->children[existingChildIndex] = (Node *)existingLeaf;
-                        newNode->children[newChildIndex] = (Node *)makeLeafNode(key + newDepth, value);
-                        replaceChildInParent(node, child, (Node *)newNode);
-                    }
-                }
-                node = child; // We continue to traverse the tree
-            } else {
-                // No corresponding child, we add the new one
-                if (isNodeFull(node)){
-                    Node *grownNode = grow(&node);
-                    if (grownNode == NULL){
-                        // We handle the growth error of the node
-                        return NULL;
-                    }
-                    *parentPointer = grownNode;
-                    node = grownNode;
-                }
-                addChild(node, key[depth], makeLeafNode(key + depth, value));
-                return *root;
-            }
-            depth++;
-        }
     }
 
     return *root;
@@ -970,7 +949,7 @@ void freeART(ART *art) {
 // int main(void){
 //     UNITY_BEGIN();
 
-//     RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
+//     RUN_TEST(test_insert_intoTreeWithOneLeaf);
 
 //     return UNITY_END();
 // }
