@@ -861,7 +861,6 @@ Node *insert(Node **root, char *key, void *value, int depth){
             // Compare current leaf's key with the key we want to insert
             LeafNode *leafNode = (LeafNode *)*root;
             if (strcmp(leafNode->key, key) == 0){
-                // Key already present, we reject the insert as collision management
                 return *root;
             }
             else{
@@ -883,6 +882,17 @@ Node *insert(Node **root, char *key, void *value, int depth){
         }
 
         // Here we handle the internal nodes
+        if(isNodeFull(node)){
+            // Node is full, we have to grow it
+            Node *grownNode = grow(node);
+            if (!grownNode){
+                return NULL;
+            }
+
+            // Update the parent pointer to the new node
+            *parentPointer = grownNode;
+            node = grownNode;
+        }
     }
 
     return *root;
