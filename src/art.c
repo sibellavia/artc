@@ -8,7 +8,7 @@
 
 #include "art.h"
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-#include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
+// #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -804,6 +804,15 @@ bool isNodeFull(Node *node) {
 }
 
 
+/**
+ * Inserts a new key-value pair into the tree rooted at `root`.
+ * 
+ * @param root The root of the tree.
+ * @param key The key to be inserted.
+ * @param value The value associated with the key.
+ * @param depth The current depth in the tree.
+ * @return The updated root of the tree after insertion.
+ */
 Node *insert(Node **root, char *key, void *value, int depth) {
     if (*root == NULL) {
         *root = (Node *)makeLeafNode(key, value);
@@ -958,10 +967,10 @@ void freeART(ART *art) {
     }
 }
 
-int main(void){
-    UNITY_BEGIN();
+// int main(void){
+//     UNITY_BEGIN();
 
-    RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
+//     RUN_TEST(test_transitionFromNode16ToNode48UnderNode4);
 
-    return UNITY_END();
-}
+//     return UNITY_END();
+// }
