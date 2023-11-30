@@ -538,12 +538,12 @@ void test_growNode4ToNode16() {
     for (int i = 0; i < 4; i++) {
         char key[5];
         sprintf(key, "key%d", i);
-        void *value = ("value%d", i);  // Usa i come valore per semplicità
+        void *value = "value";  // Usa i come valore per semplicità
         insert(&(art->root), key, value, 0);
     }
     
     char *newKey = "key4";
-    void *newValue = ("(void *)(intptr_t)4");
+    void *newValue = "value";
     insert(&(art->root), newKey, newValue, 0);
 
     TEST_ASSERT_NOT_NULL(art->root);

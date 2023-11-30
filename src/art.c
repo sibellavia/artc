@@ -818,6 +818,44 @@ void setPrefix(Node *node, const char *prefix, int prefixLen) {
     node->prefixLen = prefixLen;
 }
 
+int getKeyIndex(Node *node, char keyChar) {
+    if (node == NULL) {
+        return INVALID;
+    }
+
+    switch (node->type) {
+        case NODE4: {
+            Node4 *node4 = (Node4 *)node;
+            for (int i = 0; i < node4->count; i++) {
+                if (node4->keys[i] == keyChar) {
+                    return i;
+                }
+            }
+            break;
+        }
+        case NODE16: {
+            Node16 *node16 = (Node16 *)node;
+            for (int i = 0; i < 16; i++) {
+                if (node16->keys[i] == keyChar) {
+                    return i;
+                }
+            }
+            break;
+        }
+        case NODE48: {
+            Node48 *node48 = (Node48 *)node;
+            return node48->keys[(unsigned char)keyChar];
+        }
+        case NODE256: {
+            return (unsigned char)keyChar;
+        }
+        default:
+            return INVALID;
+    }
+
+    return INVALID;
+}
+
 
 /**
  * Inserts a new key-value pair into the tree rooted at `root`.
@@ -840,23 +878,6 @@ Node *insert(Node **root, char *key, void *value, int depth){
 
     while (node != NULL){
         
-        /**
-         * This code snippet checks if the given node is a leaf node and performs the necessary operations for inserting a key-value pair into the tree.
-         * If the node is a leaf node and the key already exists in the leaf node, the insert operation is rejected as collision management.
-         * If the key is different from the existing key in the leaf node, the leaf node is transformed into an internal node (Node4).
-         * The prefix and prefix length of the new Node4 are set based on the common prefix between the existing key and the new key.
-         * The existing leaf node and the new leaf node (created from the new key-value pair) are added as children to the Node4.
-         * The parent pointer is updated to point to the new Node4.
-         * Finally, the modified root node is returned.
-         *
-         * @param root The root node of the tree.
-         * @param node The current node being checked.
-         * @param key The key to be inserted.
-         * @param value The value associated with the key.
-         * @param parentPointer The pointer to the parent node of the current node.
-         * @param depth The current depth in the tree.
-         * @return The modified root node after the insert operation.
-         */
         if (node->type == LEAF){
             // Compare current leaf's key with the key we want to insert
             LeafNode *leafNode = (LeafNode *)*root;
@@ -884,7 +905,7 @@ Node *insert(Node **root, char *key, void *value, int depth){
         // Here we handle the internal nodes
         if(isNodeFull(node)){
             // Node is full, we have to grow it
-            Node *grownNode = grow(node);
+            Node *grownNode = grow(&node);
             if (!grownNode){
                 return NULL;
             }
@@ -892,7 +913,26 @@ Node *insert(Node **root, char *key, void *value, int depth){
             // Update the parent pointer to the new node
             *parentPointer = grownNode;
             node = grownNode;
+        } else {
+            addChild(node, key[depth], (Node *)makeLeafNode(key, value));
+            return *root;
         }
+
+        // if (node->type != LEAF) {
+        //     Node *child = findChild(node, key[depth]);
+        //     if (child) {
+        //         if (node->type == NODE4) {
+        //             Node4 *node4 = (Node4 *)node;
+        //             parentPointer = &node4->children[getKeyIndex(node4, key[depth])];
+        //         }
+        //         node = child;
+        //         depth++;
+        //     } else {
+        //         addChild(node, key[depth], (Node *)makeLeafNode(key, value));
+        //         return *root;
+        //     }
+        // }
+
     }
 
     return *root;
@@ -959,7 +999,7 @@ void freeART(ART *art) {
 // int main(void){
 //     UNITY_BEGIN();
 
-//     RUN_TEST(test_insert_intoTreeWithOneLeaf);
+//     RUN_TEST(test_growNode4ToNode16);
 
 //     return UNITY_END();
 // }
