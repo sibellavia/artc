@@ -9,7 +9,7 @@
 #include "art.h"
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -366,16 +366,12 @@ Node48 *makeNode48() {
     if (!node48) {
         return NULL;
     }
-
     node48->node.type = NODE48;
     node48->node.prefixLen = 0;
-
     memset(node48->keys, EMPTY_KEY, 256);
-
     for (int i = 0; i < 48; i++) {
         node48->children[i] = NULL;
     }
-
     return node48;
 }
 
@@ -502,19 +498,23 @@ Node *growFromNode48toNode256(Node *node){
 
     Node256 *newNode = makeNode256();
 
+    if (!newNode){
+        return NULL;
+    }
+
     memcpy(newNode->node.prefix, node48->node.prefix, node48->node.prefixLen);
     newNode->node.prefixLen = node48->node.prefixLen;
 
-    int childIndex = 0;
-
-    for (int i = 0; i < 256; i++){
-        if (node48->keys[i] != 0)
-        {
-            childIndex = node48->keys[i];
+    for (int i = 0; i < 256; i++) {
+        if (node48->keys[i] != EMPTY_KEY) {
+            int childIndex = node48->keys[i];
             newNode->children[i] = node48->children[childIndex];
+        } else {
+            newNode->children[i] = NULL;
         }
     }
 
+    printf("breakpoint\n");
     free(node48);
 
     return (Node *)newNode;
@@ -531,7 +531,7 @@ Node *grow(Node **node){
         }
             
         case NODE48: {
-            return growFromNode48toNode256(node);
+            return growFromNode48toNode256(*node);
         }
 
         case NODE256: {
@@ -996,10 +996,10 @@ void freeART(ART *art) {
     }
 }
 
-// int main(void){
-//     UNITY_BEGIN();
+int main(void){
+    UNITY_BEGIN();
 
-//     RUN_TEST(test_growNode4ToNode16);
+    RUN_TEST(test_growNode48ToNode256);
 
-//     return UNITY_END();
-// }
+    return UNITY_END();
+}
