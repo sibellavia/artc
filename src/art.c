@@ -170,65 +170,6 @@ int getPrefixLength(Node *node) {
     return node->prefixLen;
 }
 
-// int checkPrefix(Node *node, char *key, int depth){
-//     int count = 0;
-
-//     switch(node->type){
-//         case NODE4:{
-//                 Node4 *node4 = (Node4 *)node;
-                
-//                 for (int i = 0; i < node4->prefixLen; i++){
-//                     if(node4->prefix[i] == key[depth + i]){
-//                         count++;
-//                     } else {
-//                         return count;
-//                     }
-//                 }
-//             }
-//             break;
-//         case NODE16:{
-//                 Node16 *node16 = (Node16 *)node;
-                
-//                 for (int i = 0; i < node16->prefixLen; i++){
-//                     if(node16->prefix[i] == key[depth + i]){
-//                         count++;
-//                     } else {
-//                         return count;
-//                     }
-//                 }
-//             }
-//             break;
-//         case NODE48:{
-//                 Node48 *node48 = (Node48 *)node;
-                
-//                 for (int i = 0; i < node48->prefixLen; i++){
-//                     if(node48->prefix[i] == key[depth + i]){
-//                         count++;
-//                     } else {
-//                         return count;
-//                     }
-//                 }
-//             }
-//             break;
-//         case NODE256:{
-//                 Node256 *node256 = (Node256 *)node;
-                
-//                 for (int i = 0; i < node256->prefixLen; i++){
-//                     if(node256->prefix[i] == key[depth + i]){
-//                         count++;
-//                     } else {
-//                         return count;
-//                     }
-//                 }
-//             }
-//             break;
-//         default:
-//             return INVALID;
-//     }
-
-//     return count;
-// }
-
 int checkPrefix(Node *node, char *key, int depth) {
     int count = 0;
     int maxLength = MIN(node->prefixLen, strlen(key) - depth);
@@ -856,17 +797,6 @@ int getKeyIndex(Node *node, char keyChar) {
     return INVALID;
 }
 
-
-/**
- * Inserts a new key-value pair into the tree rooted at `root`.
- * 
- * @param root The root of the tree.
- * @param key The key to be inserted.
- * @param value The value associated with the key.
- * @param depth The current depth in the tree.
- * @return The updated root of the tree after insertion.
- */
-
 Node *insert(Node **root, char *key, void *value, int depth){
     if(*root == NULL){
         *root = (Node *)makeLeafNode(key, value);
@@ -917,21 +847,6 @@ Node *insert(Node **root, char *key, void *value, int depth){
             addChild(node, key[depth], (Node *)makeLeafNode(key, value));
             return *root;
         }
-
-        // if (node->type != LEAF) {
-        //     Node *child = findChild(node, key[depth]);
-        //     if (child) {
-        //         if (node->type == NODE4) {
-        //             Node4 *node4 = (Node4 *)node;
-        //             parentPointer = &node4->children[getKeyIndex(node4, key[depth])];
-        //         }
-        //         node = child;
-        //         depth++;
-        //     } else {
-        //         addChild(node, key[depth], (Node *)makeLeafNode(key, value));
-        //         return *root;
-        //     }
-        // }
 
     }
 
