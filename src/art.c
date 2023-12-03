@@ -369,6 +369,57 @@ int findEmptyIndexForChildren(Node48 *node48){
     return INVALID;
 }
 
+void freeNode(Node *node) {
+    if (node == NULL) {
+        return;
+    }   
+
+    switch (node->type) {
+        case NODE4: {
+            Node4 *node4 = (Node4 *)node;
+            for (int i = 0; i < node4->count; ++i) {
+                freeNode(node4->children[i]);
+            }
+            break;
+        }
+        case NODE16: {
+            Node16 *node16 = (Node16 *)node;
+            for (int i = 0; i < node16->count; ++i) {
+                freeNode(node16->children[i]);
+            }
+            break;
+        }
+        case NODE48: {
+            Node48 *node48 = (Node48 *)node;
+            for (int i = 0; i < 48; ++i) {
+                if (node48->keys[i] != EMPTY_KEY) {
+                    freeNode(node48->children[i]);
+                }
+            }
+            break;
+        }
+        case NODE256: {
+            Node256 *node256 = (Node256 *)node;
+            for (int i = 0; i < 256; ++i) {
+                if (node256->children[i] != NULL) {
+                    freeNode(node256->children[i]);
+                }
+            }
+            break;
+        }
+        case LEAF:{
+            LeafNode *leafNode = (LeafNode *)node;
+            free(leafNode->key);
+            free(leafNode->value);
+            break;
+        }
+        default:
+            break;
+    }
+
+    free(node);
+}
+
 Node *growFromNode4toNode16(Node **nodePtr) {
     Node4 *oldNode = (Node4 *)*nodePtr;
     Node16 *newNode = makeNode16(); 
@@ -457,6 +508,7 @@ Node *growFromNode48toNode256(Node *node){
 
     printf("breakpoint\n");
     free(node48);
+    
 
     return (Node *)newNode;
 }
@@ -472,7 +524,7 @@ Node *grow(Node **node){
         }
             
         case NODE48: {
-            return growFromNode48toNode256(*node);
+            return growFromNode48toNode256(node);
         }
 
         case NODE256: {
@@ -851,57 +903,6 @@ Node *insert(Node **root, char *key, void *value, int depth){
     }
 
     return *root;
-}
-
-void freeNode(Node *node) {
-    if (node == NULL) {
-        return;
-    }   
-
-    switch (node->type) {
-        case NODE4: {
-            Node4 *node4 = (Node4 *)node;
-            for (int i = 0; i < node4->count; ++i) {
-                freeNode(node4->children[i]);
-            }
-            break;
-        }
-        case NODE16: {
-            Node16 *node16 = (Node16 *)node;
-            for (int i = 0; i < node16->count; ++i) {
-                freeNode(node16->children[i]);
-            }
-            break;
-        }
-        case NODE48: {
-            Node48 *node48 = (Node48 *)node;
-            for (int i = 0; i < 48; ++i) {
-                if (node48->keys[i] != EMPTY_KEY) {
-                    freeNode(node48->children[i]);
-                }
-            }
-            break;
-        }
-        case NODE256: {
-            Node256 *node256 = (Node256 *)node;
-            for (int i = 0; i < 256; ++i) {
-                if (node256->children[i] != NULL) {
-                    freeNode(node256->children[i]);
-                }
-            }
-            break;
-        }
-        case LEAF:{
-            LeafNode *leafNode = (LeafNode *)node;
-            free(leafNode->key);
-            free(leafNode->value);
-            break;
-        }
-        default:
-            break;
-    }
-
-    free(node);
 }
 
 void freeART(ART *art) {
