@@ -467,14 +467,8 @@ Node *growFromNode16toNode48(Node **nodePtr) {
         char keyChar = oldNode->keys[i];
         unsigned char index = (unsigned char)keyChar;
 
-        int childIndex = findEmptyIndexForChildren(newNode);
-        if (childIndex == -1) {
-            free(newNode);
-            return NULL;
-        }
-
-        newNode->keys[index] = (unsigned char)childIndex + 1; // +1 because 0 represents empty in Node48
-        newNode->children[childIndex] = oldNode->children[i];
+        newNode->keys[index] = i + 1;
+        newNode->children[i] = oldNode->children[i];
     }
 
     free(oldNode);
@@ -507,7 +501,7 @@ Node *growFromNode48toNode256(Node *node){
     }
 
     printf("breakpoint\n");
-    free(node48);
+    free(node);
     
 
     return (Node *)newNode;
@@ -524,7 +518,7 @@ Node *grow(Node **node){
         }
             
         case NODE48: {
-            return growFromNode48toNode256(node);
+            return growFromNode48toNode256(*node);
         }
 
         case NODE256: {
