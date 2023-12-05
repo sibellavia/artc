@@ -84,28 +84,21 @@ Node *findChildBinary(Node *genericNode, char byte);
 Node *findChild(Node *node, char byte);
 
 int getPrefixLength(Node *node);
-
 int checkPrefix(Node *node, char *key, int depth);
-
-Node *search(Node *node, char *key, int depth);
-
-Node *doesNodeHaveChild(Node *node);
 
 Node4 *makeNode4();
 Node16 *makeNode16();
 Node48 *makeNode48();
 Node256 *makeNode256();
 
-LeafNode *makeLeafNode(char *key, void *value);
+LeafNode *makeLeafNode(const char *key, void *value);
 
 int findEmptyIndexForChildren(Node48 *node48);
 
 Node *growFromNode4toNode16(Node **nodePtr);
 Node *growFromNode16toNode48(Node **nodePtr);
-Node *growFromNode48toNode256(Node *node);
+Node *growFromNode48toNode256(Node **nodePtr);
 Node *grow(Node **node);
-
-char *loadKey(Node *node);
 
 Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode);
 Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode);
@@ -115,12 +108,13 @@ Node *addChild(Node *parentNode, char keyChar, Node *childNode);
 
 Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, int depth);
 
+bool isNodeFull(Node *node);
+
+void setPrefix(Node *node, const char *prefix, int prefixLen);
+
 Node *insert(Node **root, char *key, void *value, int depth);
 
 void freeNode(Node *node);
-
 void freeART(ART *art);
-
-void setPrefix(Node *node, const char *prefix, int prefixLen);
 
 #endif // ART_H
