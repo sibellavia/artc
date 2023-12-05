@@ -712,12 +712,12 @@ void freeART(ART *art) {
     }
 }
 
-int main(void){
-    // UNITY_BEGIN();
+// int main(void){
+//     // UNITY_BEGIN();
 
-    // RUN_TEST(test_growNode48ToNode256);
+//     // RUN_TEST(test_growNode48ToNode256);
 
-    // return UNITY_END();
+//     // return UNITY_END();
 
-    return 0;
-}
+//     return 0;
+// }
