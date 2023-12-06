@@ -96,6 +96,7 @@ LeafNode *makeLeafNode(const char *key, void *value);
 int findEmptyIndexForChildren(Node48 *node48);
 
 Node *growFromNode4toNode16(Node **nodePtr);
+int findNextAvailableChild(Node **children);
 Node *growFromNode16toNode48(Node **nodePtr);
 Node *growFromNode48toNode256(Node **nodePtr);
 Node *grow(Node **node);

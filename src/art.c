@@ -265,6 +265,15 @@ Node *growFromNode4toNode16(Node **nodePtr) {
     return (Node *)newNode;
 }
 
+int findNextAvailableChild(Node **children) {
+    for (int i = 0; i < 48; i++) {
+        if (children[i] == NULL) {
+            return i;
+        }
+    }
+    return INVALID; // No space available
+}
+
 Node *growFromNode16toNode48(Node **nodePtr) {
     if (nodePtr == NULL || *nodePtr == NULL) {
         return NULL;
@@ -286,8 +295,15 @@ Node *growFromNode16toNode48(Node **nodePtr) {
         unsigned char keyChar = oldNode->keys[i];
         unsigned char index = keyChar;
 
-        newNode->keys[index] = i;
-        newNode->children[i] = oldNode->children[i];
+        int nextAvailableIndex = findNextAvailableChild(newNode->children);
+        if (nextAvailableIndex == INVALID) {
+            free(newNode);
+            return NULL;
+        }
+
+        printf("Inserting keyChar '%c' (index %d) at position %d\n", keyChar, index, nextAvailableIndex);
+        newNode->keys[index] = nextAvailableIndex + 1;
+        newNode->children[nextAvailableIndex] = oldNode->children[i];
     }
 
     free(oldNode);
