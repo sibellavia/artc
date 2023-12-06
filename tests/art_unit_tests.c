@@ -640,7 +640,7 @@ void test_Node48KeysPopulation() {
 
     for (int i = 0; i < 50; i++) {
         char key[10];
-        snprintf(key, sizeof(key), "%d_key", i);
+        snprintf(key, sizeof(key), "%c%d_key", 'A' + (i % 26), i);
         insert(&(art->root), key, "value", 0);
     }
 
