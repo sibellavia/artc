@@ -20,7 +20,7 @@
 #endif
 
 #define MAX_PREFIX_LENGTH 32
-#define EMPTY_KEY 0xFF
+#define EMPTY_KEY '\0'
 #define INVALID -1
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -84,7 +84,7 @@ Node *findChildBinary(Node *genericNode, char byte);
 Node *findChild(Node *node, char byte);
 
 int getPrefixLength(Node *node);
-int checkPrefix(Node *node, char *key, int depth);
+int checkPrefix(Node *node, const char *key, int depth);
 
 Node4 *makeNode4();
 Node16 *makeNode16();
@@ -112,7 +112,7 @@ bool isNodeFull(Node *node);
 
 void setPrefix(Node *node, const char *prefix, int prefixLen);
 
-Node *insert(Node **root, char *key, void *value, int depth);
+Node *insert(Node **root, const char *key, void *value, int depth);
 
 void freeNode(Node *node);
 void freeART(ART *art);

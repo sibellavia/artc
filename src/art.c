@@ -8,7 +8,7 @@
 
 #include "art.h"
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -129,15 +129,18 @@ int getPrefixLength(Node *node) {
     return node->prefixLen;
 }
 
-int checkPrefix(Node *node, char *key, int depth) {
+int checkPrefix(Node *node, const char *key, int depth) {
     int count = 0;
-    int maxLength = MIN(node->prefixLen, strlen(key) - depth);
-    for (int i = 0; i < MIN(node->prefixLen, maxLength); i++) {
+    int keyLength = strlen(key);
+    int maxLength = MIN(node->prefixLen, keyLength - depth);
+    
+    for (int i = 0; i < maxLength; i++) {
         if (node->prefix[i] != key[depth + i]) {
             break;
         }
         count++;
     }
+
     return count;
 }
 
@@ -596,7 +599,7 @@ void setPrefix(Node *node, const char *prefix, int prefixLen) {
     node->prefixLen = prefixLen;
 }
 
-Node *insert(Node **root, char *key, void *value, int depth){
+Node *insert(Node **root, const char *key, void *value, int depth){
     if(*root == NULL){
         *root = (Node *)makeLeafNode(key, value);
         return *root;
@@ -609,25 +612,37 @@ Node *insert(Node **root, char *key, void *value, int depth){
         
         if (node->type == LEAF){
             // Compare current leaf's key with the key we want to insert
-            LeafNode *leafNode = (LeafNode *)*root;
+            LeafNode *leafNode = (LeafNode *)node;
             if (strcmp((const char *)leafNode->key, key) == 0){
-                return *root;
+                // La chiave esiste già, sostituisci il valore o restituisci il nodo
+                // leafNode->value = value; // Opzionale, a seconda del comportamento desiderato. Devo decidere.
+                
+                return node;
             }
             else{
-                // Keys are different, we have to transform the leaf node in an internal node
+                // Calcola il prefisso comune tra la chiave del leafNode e la nuova chiave
+                int commonPrefixLength = 0;
+                while (leafNode->key[commonPrefixLength] == key[depth + commonPrefixLength]){
+                    commonPrefixLength++;
+                    if (commonPrefixLength >= MAX_PREFIX_LENGTH){
+                        break; // Non possiamo avere un prefisso più lungo di 10 byte
+                    }
+                }
+
+                // Crea un nuovo Node4 e imposta il prefisso
                 Node4 *newNode4 = makeNode4();
+                if (newNode4 == NULL){
+                    return NULL;
+                }
 
-                // Set the prefix and the prefix length of new Node4
-                int commonPrefixLength = checkPrefix((Node *)leafNode, key, depth);
-                setPrefix((Node *)newNode4, key, commonPrefixLength);
+                setPrefix((Node *)newNode4, key + depth, commonPrefixLength);
 
-                // Add existing leaf and new leaf to Node4
-                addChildToNode4((Node *)newNode4, leafNode->key[depth], node);
-                addChildToNode4((Node *)newNode4, key[depth], (Node *)makeLeafNode(key, value));
+                // Aggiungi il leafNode esistente e il nuovo valore al nuovo Node4
+                addChildToNode4((Node *)newNode4, leafNode->key[depth + commonPrefixLength], node);
+                addChildToNode4((Node *)newNode4, key[depth + commonPrefixLength], (Node *)makeLeafNode(key, value));
 
-                // Update the parent pointer to the new Node4
                 *parentPointer = (Node *)newNode4;
-                return *root;
+                return (Node *)newNode4;
             }
         }
 
@@ -712,12 +727,11 @@ void freeART(ART *art) {
     }
 }
 
-// int main(void){
-//     // UNITY_BEGIN();
+int main(void){
+    UNITY_BEGIN();
 
-//     // RUN_TEST(test_growNode48ToNode256);
+    RUN_TEST(test_Node48KeysPopulation);
+    // RUN_TEST(test_growNode48ToNode256);
 
-//     // return UNITY_END();
-
-//     return 0;
-// }
+    return UNITY_END();
+}
