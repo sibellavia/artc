@@ -292,18 +292,19 @@ Node *growFromNode16toNode48(Node **nodePtr) {
 
     // Copy each child and key from oldNode to newNode
     for (int i = 0; i < 16; i++) {
-        unsigned char keyChar = oldNode->keys[i];
-        unsigned char index = keyChar;
+        
+        if(oldNode->children[i] != NULL){
+            unsigned char keyChar = oldNode->keys[i];
+            int nextAvailableIndex = findNextAvailableChild(newNode->children);
 
-        int nextAvailableIndex = findNextAvailableChild(newNode->children);
-        if (nextAvailableIndex == INVALID) {
-            free(newNode);
-            return NULL;
+            if (nextAvailableIndex == INVALID) {
+                free(newNode);
+                return NULL;
+            }
+
+            newNode->keys[keyChar] = nextAvailableIndex + 1; // Mappatura chiave -> indice in newNode
+            newNode->children[nextAvailableIndex] = oldNode->children[i];
         }
-
-        printf("Inserting keyChar '%c' (index %d) at position %d\n", keyChar, index, nextAvailableIndex);
-        newNode->keys[index] = nextAvailableIndex + 1;
-        newNode->children[nextAvailableIndex] = oldNode->children[i];
     }
 
     free(oldNode);
