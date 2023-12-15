@@ -286,33 +286,32 @@ Node *growFromNode16toNode48(Node **nodePtr) {
         return NULL;
     }
 
+    // Copia il prefisso
     memcpy(newNode->node.prefix, oldNode->node.prefix, oldNode->node.prefixLen);
     newNode->node.prefixLen = oldNode->node.prefixLen;
+
+    // Inizializza l'array keys di Node48
     memset(newNode->keys, EMPTY_KEY, sizeof(newNode->keys));
 
-    // Copy each child and key from oldNode to newNode
     for (int i = 0; i < 16; i++) {
-        
-        if(oldNode->children[i] != NULL){
-            unsigned char keyChar = oldNode->keys[i];
-            int nextAvailableIndex = findNextAvailableChild(newNode->children);
+        if (oldNode->children[i] != NULL) {
+            uint8_t keyChar = oldNode->keys[i];
 
-            if (nextAvailableIndex == INVALID) {
-                free(newNode);
-                return NULL;
+            // Verifica se la posizione è già occupata in Node48
+            if (newNode->keys[keyChar] != EMPTY_KEY) {
+                continue; // Se la chiave è già presente, salta questo figlio
             }
 
-            newNode->keys[keyChar] = nextAvailableIndex + 1; // Mappatura chiave -> indice in newNode
-            newNode->children[nextAvailableIndex] = oldNode->children[i];
+            newNode->keys[keyChar] = i + 1; // Mappatura chiave -> indice in newNode
+            newNode->children[i] = oldNode->children[i];
         }
     }
 
-    free(oldNode);
-
+    freeNode(oldNode);
     *nodePtr = (Node *)newNode;
-
     return (Node *)newNode;
 }
+
 
 
 Node *growFromNode48toNode256(Node **nodePtr){

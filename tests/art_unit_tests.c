@@ -688,7 +688,7 @@ void test_growNode48ToNode256() {
 }
 
 
-// /* Main */
+/* Main */
 
 // int main(void){
 //     printf("Starting tests...\n");
