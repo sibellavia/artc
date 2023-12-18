@@ -8,7 +8,7 @@
 
 #include "art.h"
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -286,24 +286,25 @@ Node *growFromNode16toNode48(Node **nodePtr) {
         return NULL;
     }
 
-    // Copia il prefisso
+    
     memcpy(newNode->node.prefix, oldNode->node.prefix, oldNode->node.prefixLen);
     newNode->node.prefixLen = oldNode->node.prefixLen;
 
-    // Inizializza l'array keys di Node48
+    
     memset(newNode->keys, EMPTY_KEY, sizeof(newNode->keys));
 
     for (int i = 0; i < 16; i++) {
         if (oldNode->children[i] != NULL) {
             uint8_t keyChar = oldNode->keys[i];
+            int childIndex = findNextAvailableChild(newNode->children);
 
-            // Verifica se la posizione è già occupata in Node48
-            if (newNode->keys[keyChar] != EMPTY_KEY) {
-                continue; // Se la chiave è già presente, salta questo figlio
+            if (childIndex == INVALID) {
+                freeNode(newNode);
+                return NULL;
             }
 
-            newNode->keys[keyChar] = i + 1; // Mappatura chiave -> indice in newNode
-            newNode->children[i] = oldNode->children[i];
+            newNode->keys[keyChar] = childIndex + 1;
+            newNode->children[childIndex] = oldNode->children[i];
         }
     }
 
@@ -743,11 +744,11 @@ void freeART(ART *art) {
     }
 }
 
-int main(void){
-    UNITY_BEGIN();
+// int main(void){
+//     UNITY_BEGIN();
 
-    RUN_TEST(test_Node48KeysPopulation);
-    // RUN_TEST(test_growNode48ToNode256);
+//     RUN_TEST(test_Node48KeysPopulation);
+//     // RUN_TEST(test_growNode48ToNode256);
 
-    return UNITY_END();
-}
+//     return UNITY_END();
+// }
