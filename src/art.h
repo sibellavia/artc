@@ -91,7 +91,7 @@ Node16 *makeNode16();
 Node48 *makeNode48();
 Node256 *makeNode256();
 
-LeafNode *makeLeafNode(const char *key, void *value);
+LeafNode *makeLeafNode(const char *key, const void *value, size_t valueLength);
 
 int findEmptyIndexForChildren(Node48 *node48);
 
@@ -107,13 +107,13 @@ Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode);
 Node *addChildToNode256(Node *parentNode, char keyChar, Node *childNode);
 Node *addChild(Node *parentNode, char keyChar, Node *childNode);
 
-Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, int depth);
+Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, size_t newValueLength, int depth);
 
 bool isNodeFull(Node *node);
 
 void setPrefix(Node *node, const char *prefix, int prefixLen);
 
-Node *insert(Node **root, const char *key, void *value, int depth);
+Node *insert(Node **root, const char *key, void *value, size_t valueLength, int depth);
 
 void freeNode(Node *node);
 void freeART(ART *art);

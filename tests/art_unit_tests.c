@@ -83,7 +83,9 @@ Node *makeComplexTree() {
             setPrefix(childNode48, "node48_", 7);
             addChildToNode16(childNode16, '1' + j, (Node *)childNode48);
 
-            LeafNode *leaf = makeLeafNode("leafkey", "value");
+            const char *leafKey = "leafkey";
+            const char *leafValue = "value";
+            LeafNode *leaf = makeLeafNode(leafKey, leafValue, strlen(leafValue) + 1);
             addChildToNode48(childNode48, 'x', (Node *)leaf);
         }
     }
@@ -96,13 +98,15 @@ Node4 *makeNode4WithChildren() {
     setPrefix(node, "test", 4);
 
     for (int i = 0; i < 3; i++) {
-        char childKey = 'a' + i;  
-        LeafNode *childLeaf = makeLeafNode(&childKey, "value"); 
-        addChildToNode4(node, childKey, (Node *)childLeaf);  
+        char childKey = 'a' + i;
+        const char *childValue = "value";
+        LeafNode *childLeaf = makeLeafNode(&childKey, childValue, strlen(childValue) + 1);
+        addChildToNode4(node, childKey, (Node *)childLeaf);
     }
 
     return node;
 }
+
 
 void printNodePrefix(Node *node) {
     if (node == NULL) {
@@ -120,11 +124,14 @@ void printNodePrefix(Node *node) {
 Node16 *createFullNode16() {
     Node16 *node = makeNode16();
     for (int i = 0; i < 16; i++) {
-        node->keys[i] = i;
-        node->children[i] = (Node *)makeLeafNode(i, "test_value");
+        char key[2] = { (char)('a' + i), '\0' };
+        const char *value = "test_value";
+        node->keys[i] = key[0];
+        node->children[i] = (Node *)makeLeafNode(key, value, strlen(value) + 1);
     }
     return node;
 }
+
 
 /*** TESTS ***/
 /* Node *createRootNode() */
@@ -476,8 +483,10 @@ void test_checkPrefix_DifferentDepths_Node48(void) {
 void test_InsertWithCommonPrefix() {
     ART *art = initializeAdaptiveRadixTree();
 
-    insert(&(art->root), "apple", "value1", 0);
-    insert(&(art->root), "appetite", "value2", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    insert(&(art->root), "apple", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "appetite", value2, strlen(value2) + 1, 0);
 
     Node4 *node4 = (Node4 *)(art->root);
     TEST_ASSERT_EQUAL_STRING_LEN("app", node4->node.prefix, 3);
@@ -488,10 +497,13 @@ void test_InsertWithCommonPrefix() {
 void test_GrowNodeWithPrefix() {
     ART *art = initializeAdaptiveRadixTree();
 
+    const char *value = "value";
+    size_t valueLength = strlen(value) + 1;
+
     for (int i = 0; i < 5; i++) {
         char key[10];
         snprintf(key, sizeof(key), "test%d", i);
-        insert(&(art->root), key, "value", 0);
+        insert(&(art->root), key, value, valueLength, 0);
     }
 
     Node16 *node16 = (Node16 *)(art->root);
@@ -503,8 +515,10 @@ void test_GrowNodeWithPrefix() {
 void test_InsertWithoutCommonPrefix() {
     ART *art = initializeAdaptiveRadixTree();
 
-    insert(&(art->root), "apple", "value1", 0);
-    insert(&(art->root), "banana", "value2", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    insert(&(art->root), "apple", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "banana", value2, strlen(value2) + 1, 0);
 
     Node4 *node4 = (Node4 *)(art->root);
     TEST_ASSERT_EQUAL(0, node4->node.prefixLen);
@@ -515,9 +529,12 @@ void test_InsertWithoutCommonPrefix() {
 void test_PrefixCalculation() {
     ART *art = initializeAdaptiveRadixTree();
     
-    insert(&(art->root), "prefixTest1", "value1", 0);
-    insert(&(art->root), "prefixTest2", "value2", 0);
-    insert(&(art->root), "prefixTest3", "value3", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    const char *value3 = "value3";
+    insert(&(art->root), "prefixTest1", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "prefixTest2", value2, strlen(value2) + 1, 0);
+    insert(&(art->root), "prefixTest3", value3, strlen(value3) + 1, 0);
 
     printNodePrefix(art->root);
 
@@ -529,9 +546,12 @@ void test_PrefixCalculation() {
 void test_CommonPrefixWithMultipleKeys() {
     ART *art = initializeAdaptiveRadixTree();
 
-    insert(&(art->root), "prefixOne", "value1", 0);
-    insert(&(art->root), "prefixTwo", "value2", 0);
-    insert(&(art->root), "prefixThree", "value3", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    const char *value3 = "value3";
+    insert(&(art->root), "prefixOne", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "prefixTwo", value2, strlen(value2) + 1, 0);
+    insert(&(art->root), "prefixThree", value3, strlen(value3) + 1, 0);
 
     Node4 *node4 = (Node4 *)(art->root);
     TEST_ASSERT_EQUAL_STRING_LEN("prefix", node4->node.prefix, 6);
@@ -542,8 +562,10 @@ void test_CommonPrefixWithMultipleKeys() {
 void test_PartialCommonPrefix() {
     ART *art = initializeAdaptiveRadixTree();
 
-    insert(&(art->root), "commonPartA", "value1", 0);
-    insert(&(art->root), "commonPartB", "value2", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    insert(&(art->root), "commonPartA", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "commonPartB", value2, strlen(value2) + 1, 0);
 
     Node4 *node4 = (Node4 *)(art->root);
     TEST_ASSERT_EQUAL_STRING_LEN("commonPart", node4->node.prefix, 10);
@@ -554,8 +576,10 @@ void test_PartialCommonPrefix() {
 void test_NoCommonPrefix() {
     ART *art = initializeAdaptiveRadixTree();
 
-    insert(&(art->root), "apple", "value1", 0);
-    insert(&(art->root), "banana", "value2", 0);
+    const char *value1 = "value1";
+    const char *value2 = "value2";
+    insert(&(art->root), "apple", value1, strlen(value1) + 1, 0);
+    insert(&(art->root), "banana", value2, strlen(value2) + 1, 0);
 
     Node4 *node4 = (Node4 *)(art->root);
     TEST_ASSERT_EQUAL(0, node4->node.prefixLen);
@@ -566,10 +590,13 @@ void test_NoCommonPrefix() {
 void test_PrefixDuringNodeGrowth() {
     ART *art = initializeAdaptiveRadixTree();
 
+    const char *value = "value";
+    size_t valueLength = strlen(value) + 1;
+
     for (int i = 0; i < 5; i++) {
         char key[15];
         snprintf(key, sizeof(key), "growth%d", i);
-        insert(&(art->root), key, "value", 0);
+        insert(&(art->root), key, value, valueLength, 0);
     }
 
     Node16 *node16 = (Node16 *)(art->root);
@@ -577,6 +604,7 @@ void test_PrefixDuringNodeGrowth() {
 
     freeART(art);
 }
+
 
 /* Insert algorithm */
 
@@ -586,8 +614,10 @@ void test_insert_intoEmptyTree() {
     TEST_ASSERT_NULL(art->root);
 
     char *key = "test";
-    void *value = "testvalue";
-    insert(&(art->root), key, value, 0);
+    char *value = "testvalue";
+    size_t valueLength = strlen(value) + 1;
+
+    insert(&(art->root), key, value, valueLength, 0);
 
     TEST_ASSERT_NOT_NULL(art->root);
     TEST_ASSERT_EQUAL(LEAF, art->root->type);
@@ -597,19 +627,21 @@ void test_insert_intoEmptyTree() {
     freeART(art);
 }
 
+
 void test_growNode4ToNode16() {
     ART *art = initializeAdaptiveRadixTree();
     
+    const char *value = "value";
+    size_t valueLength = strlen(value) + 1;
+
     for (int i = 0; i < 4; i++) {
         char key[5];
         sprintf(key, "key%d", i);
-        void *value = "value";
-        insert(&(art->root), key, value, 0);
+        insert(&(art->root), key, value, valueLength, 0);
     }
     
     char *newKey = "key4";
-    void *newValue = "value";
-    insert(&(art->root), newKey, newValue, 0);
+    insert(&(art->root), newKey, value, valueLength, 0);
 
     TEST_ASSERT_NOT_NULL(art->root);
     TEST_ASSERT_EQUAL(NODE16, art->root->type);
@@ -617,26 +649,30 @@ void test_growNode4ToNode16() {
     freeART(art);
 }
 
+
 void test_growNode16ToNode48() {
     ART *art = initializeAdaptiveRadixTree();
     
+    const char *value16 = "value16";
+    size_t value16Length = strlen(value16) + 1;
+
     for (int i = 0; i < 16; i++) {
         char key[10];
         snprintf(key, sizeof(key), "key16%d", i);
-        void *value = "value16";
-        insert(&(art->root), key, value, 0);
+        insert(&(art->root), key, value16, value16Length, 0);
     }
 
     TEST_ASSERT_NOT_NULL(art->root);
     TEST_ASSERT_EQUAL(NODE16, art->root->type);
 
+    const char *value48 = "value48";
+    size_t value48Length = strlen(value48) + 1;
+
     for (int i = 0; i < 4; i++) {
         char newKey[7];
         sprintf(newKey, "key48%d", i);
-        void *newValue = "value48";
-        insert(&(art->root), newKey, newValue, 0);
+        insert(&(art->root), newKey, value48, value48Length, 0);
     }
-
 
     TEST_ASSERT_NOT_NULL(art->root);
     TEST_ASSERT_EQUAL(NODE48, art->root->type);
@@ -648,12 +684,14 @@ void test_growNode16ToNode48_2() {
     Node16 *node16 = makeNode16();
     TEST_ASSERT_NOT_NULL(node16);
 
+    const char *value = "test_value";
+    size_t valueLength = strlen(value) + 1;
+
     for (int i = 0; i < 16; i++) {
         char key[10];
         snprintf(key, sizeof(key), "%d", i);
-        char *value = "test_value";
         node16->keys[i] = i;
-        node16->children[i] = (Node *)makeLeafNode(key, value);
+        node16->children[i] = (Node *)makeLeafNode(key, value, valueLength);
         TEST_ASSERT_NOT_NULL(node16->children[i]);
     }
 
@@ -673,7 +711,7 @@ void test_growNode16ToNode48_2() {
     }
 
     TEST_ASSERT_EQUAL(16, populatedCount);
-    freeNode(node48);
+    freeNode((Node *)node48);
 }
 
 /* Main */
