@@ -278,6 +278,16 @@ int findNextAvailableChild(Node **children) {
     return INVALID; // No space available
 }
 
+int findUnusedKey(uint8_t *keys) {
+    for (int i = 0; i < 256; i++) {
+        if (keys[i] == EMPTY_KEY) {
+            return i;
+        }
+    }
+    return INVALID;
+}
+
+
 Node *growFromNode16toNode48(Node **nodePtr) {
     if (nodePtr == NULL || *nodePtr == NULL) {
         return NULL;
@@ -290,24 +300,22 @@ Node *growFromNode16toNode48(Node **nodePtr) {
         return NULL;
     }
 
-    
     memcpy(newNode->node.prefix, oldNode->node.prefix, oldNode->node.prefixLen);
     newNode->node.prefixLen = oldNode->node.prefixLen;
-
-    
     memset(newNode->keys, EMPTY_KEY, sizeof(newNode->keys));
 
     for (int i = 0; i < 16; i++) {
         if (oldNode->children[i] != NULL) {
             uint8_t keyChar = oldNode->keys[i];
             int childIndex = findNextAvailableChild(newNode->children);
+            int keyIndex = findUnusedKey(newNode->keys);
 
-            if (childIndex == INVALID) {
+            if (childIndex == INVALID || keyIndex == INVALID) {
                 freeNode((Node *) newNode);
                 return NULL;
             }
 
-            newNode->keys[keyChar] = childIndex + 1;
+            newNode->keys[keyIndex] = childIndex;
             newNode->children[childIndex] = oldNode->children[i];
         }
     }
@@ -753,8 +761,7 @@ void freeART(ART *art) {
 // int main(void){
 //     UNITY_BEGIN();
 
-//     RUN_TEST(test_Node48KeysPopulation);
-//     // RUN_TEST(test_growNode48ToNode256);
+//     RUN_TEST(test_growNode16ToNode48_2);
 
 //     return UNITY_END();
 // }
