@@ -114,7 +114,9 @@ bool isNodeFull(Node *node);
 
 void setPrefix(Node *node, const char *prefix, int prefixLen);
 
-Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t valueLength, int depth);
+typedef int (*compare_func)(const void *a, const void *b, size_t size);
+
+Node *insert(Node **root, const void *key, size_t keyLength, void *value, size_t valueLength, int depth, compare_func cmp);
 
 void freeNode(Node *node);
 void freeART(ART *art);

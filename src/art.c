@@ -633,7 +633,40 @@ void setPrefix(Node *node, const char *prefix, int prefixLen) {
     node->prefixLen = prefixLen;
 }
 
-Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t valueLength, int depth){
+typedef int (*compare_func)(const void *a, const void *b, size_t size);
+
+int compare_ints(const void *a, const void *b, size_t size){
+    // Assicurati che la dimensione sia corretta per un intero
+    if (size != sizeof(int)) {
+        fprintf(stderr, "Dimension not valid for integer comparing\n");
+        return 0;
+    }
+
+    // Casta i puntatori void a puntatori interi
+    const int *ia = (const int *)a;
+    const int *ib = (const int *)b;
+
+    // Esegui il confronto
+    if (*ia < *ib) return -1;
+    else if (*ia > *ib) return 1;
+    else return 0;
+}
+
+int compare_strings(const void *a, const void *b, size_t size){
+    // Casta i puntatori void a puntatori char
+    const char *sa = (const char *)a;
+    const char *sb = (const char *)b;
+
+    // Confronta le stringhe fino alla dimensione specificata
+    for (size_t i = 0; i < size; i++) {
+        if (sa[i] < sb[i]) return -1;
+        else if (sa[i] > sb[i]) return 1;
+        else if (sa[i] == '\0') break;  // Fine della stringa
+    }
+    return 0;
+}
+
+Node *insert(Node **root, const void *key, size_t keyLength, void *value, size_t valueLength, int depth, compare_func cmp){
     if(*root == NULL){
         *root = (Node *)makeLeafNode(key, value, keyLength, valueLength);
         return *root;
@@ -643,27 +676,22 @@ Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t
     Node **parentPointer = root;
 
     while (node != NULL){
-        
         if (node->type == LEAF){
-            // Compare current leaf's key with the key we want to insert
             LeafNode *leafNode = (LeafNode *)node;
-            if (strcmp((const char *)leafNode->key, key) == 0){
+            if (cmp(leafNode->key, key, keyLength) == 0){
                 // La chiave esiste già, sostituisci il valore o restituisci il nodo
-                // leafNode->value = value; // Opzionale, a seconda del comportamento desiderato. Devo decidere.
-                
                 return node;
             }
             else{
-                // Calcola il prefisso comune tra la chiave del leafNode e la nuova chiave
+                // Gestione del prefisso comune
                 int commonPrefixLength = 0;
-                while (leafNode->key[commonPrefixLength] == key[depth + commonPrefixLength]){
+                while (cmp(leafNode->key + commonPrefixLength, key + depth + commonPrefixLength, 1) == 0){
                     commonPrefixLength++;
                     if (commonPrefixLength >= MAX_PREFIX_LENGTH){
-                        break; // Non possiamo avere un prefisso più lungo di 10 byte
+                        break;
                     }
                 }
 
-                // Crea un nuovo Node4 e imposta il prefisso
                 Node4 *newNode4 = makeNode4();
                 if (newNode4 == NULL){
                     return NULL;
@@ -671,7 +699,6 @@ Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t
 
                 setPrefix((Node *)newNode4, key + depth, commonPrefixLength);
 
-                // Aggiungi il leafNode esistente e il nuovo valore al nuovo Node4
                 addChildToNode4((Node *)newNode4, leafNode->key[depth + commonPrefixLength], node);
                 addChildToNode4((Node *)newNode4, key[depth + commonPrefixLength], (Node *)makeLeafNode(key, value, keyLength, valueLength));
 
@@ -679,7 +706,7 @@ Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t
                 return (Node *)newNode4;
             }
         }
-
+        
         // Here we handle the internal nodes
         if(isNodeFull(node)){
             // Node is full, we have to grow it
@@ -699,6 +726,14 @@ Node *insert(Node **root, const char *key, size_t keyLength, void *value, size_t
     }
 
     return *root;
+}
+
+Node *insertInt(Node **root, int key, void *value, size_t valueLength) {
+    return insert(root, &key, sizeof(int), value, valueLength, 0, compare_ints);
+}
+
+Node *insertString(Node **root, const char *key, void *value, size_t valueLength) {
+    return insert(root, key, strlen(key) + 1, value, valueLength, 0, compare_strings);
 }
 
 typedef void (*FreeValueFunc)(void *);
