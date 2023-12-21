@@ -8,7 +8,7 @@
 
 #include "art.h"
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -765,10 +765,10 @@ void freeART(ART *art) {
     }
 }
 
-int main(void){
-    UNITY_BEGIN();
+// int main(void){
+//     UNITY_BEGIN();
 
-    RUN_TEST(test_insertAndFind_MultipleIntegers);
+//     RUN_TEST(test_insertAndFind_MultipleIntegers);
 
-    return UNITY_END();
-}
+//     return UNITY_END();
+// }
