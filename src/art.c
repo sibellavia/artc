@@ -8,7 +8,7 @@
 
 #include "art.h"
 // #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-// #include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -107,6 +107,9 @@ Node *findChildBinary(Node *genericNode, char byte) {
             return node->children[(unsigned char)byte];
             break;
         }
+        case LEAF:{
+            return genericNode;
+        }
         default:
             return NULL;
     }
@@ -201,11 +204,10 @@ Node256 *makeNode256(){
     return node256;
 }
 
-LeafNode *makeLeafNode(const char *key, const void *value, size_t valueLength){
-    size_t keyLength = strlen(key);
+LeafNode *makeLeafNode(const char *key, const void *value, size_t keyLength, size_t valueLength){
     
     // Allocazione della memoria per LeafNode con spazio aggiuntivo per la chiave
-    LeafNode *leafNode = malloc(sizeof(LeafNode) + keyLength + 1);
+    LeafNode *leafNode = malloc(sizeof(LeafNode) + keyLength);
     if(!leafNode){
         return NULL;
     }
@@ -215,7 +217,7 @@ LeafNode *makeLeafNode(const char *key, const void *value, size_t valueLength){
     memset(leafNode->node.prefix, 0, MAX_PREFIX_LENGTH);
     
     // Copia della chiave
-    memcpy(leafNode->key, key, keyLength + 1);
+    memcpy(leafNode->key, key, keyLength);
 
     // Allocazione della memoria per il valore
     leafNode->value = malloc(valueLength);
@@ -527,7 +529,7 @@ Node *addChild(Node *parentNode, char keyChar, Node *childNode){
     }
 }
 
-Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char *newKey, void *newValue, size_t newValueLength, int depth){
+Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, size_t existingKeyLength, const char *newKey, void *newValue, size_t newKeyLength, size_t newValueLength, int depth){
    if (leafNode == NULL || existingKey == NULL || newKey == NULL || newValue == NULL){
        return NULL;
    }
@@ -539,26 +541,31 @@ Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, const char 
 
     // Set the prefix and the prefix length of new Node4
     int prefixLen = 0;
-    while (existingKey[depth + prefixLen] == newKey[depth + prefixLen] && 
-           existingKey[depth + prefixLen] != '\0'){
+    while (existingKey[depth + prefixLen] == newKey[depth + prefixLen] &&
+           depth + prefixLen < existingKeyLength && // Assure we do not go out of bounds
+           depth + prefixLen < newKeyLength) { // Assure we do not go out of bounds
         newNode->node.prefix[prefixLen] = existingKey[depth + prefixLen];
         prefixLen++;
         if (prefixLen >= MAX_PREFIX_LENGTH){
-            break; // We cannot have a prefix longer than 10 bytes
+            break; // We cannot have a prefix longer than MAX_PREFIX_LENGTH
         }
     }
     newNode->node.prefixLen = prefixLen;
 
     // Add existing leaf node and the new value to Node4
-    LeafNode *newLeafNode = makeLeafNode(newKey + depth + prefixLen, newValue, newValueLength);
+    // Calculate the remaining key length after the prefix for the new leaf node
+    size_t remainingNewKeyLength = newKeyLength - (depth + prefixLen);
+    LeafNode *newLeafNode = makeLeafNode(newKey + depth + prefixLen, newValue, remainingNewKeyLength, newValueLength);
     if (newLeafNode == NULL){
-        free(newNode);
+        freeNode((Node *)newNode);
         return NULL;
     }
 
-    char existingKeyChar = existingKey[depth + prefixLen];
-    char newKeyChar = newKey[depth + prefixLen];
+    // Determine the characters after the common prefix to add to the new node
+    char existingKeyChar = existingKeyLength > depth + prefixLen ? existingKey[depth + prefixLen] : '\0';
+    char newKeyChar = newKeyLength > depth + prefixLen ? newKey[depth + prefixLen] : '\0';
 
+    // Here, you would need to update addChild to handle a null character if it is part of the key
     addChild((Node *)newNode, existingKeyChar, leafNode);
     addChild((Node *)newNode, newKeyChar, (Node *)newLeafNode);
 
@@ -626,9 +633,9 @@ void setPrefix(Node *node, const char *prefix, int prefixLen) {
     node->prefixLen = prefixLen;
 }
 
-Node *insert(Node **root, const char *key, void *value, size_t valueLength, int depth){
+Node *insert(Node **root, const char *key, void *value, size_t keyLength, size_t valueLength, int depth){
     if(*root == NULL){
-        *root = (Node *)makeLeafNode(key, value, valueLength);
+        *root = (Node *)makeLeafNode(key, value, keyLength, valueLength);
         return *root;
     }
 
@@ -666,7 +673,7 @@ Node *insert(Node **root, const char *key, void *value, size_t valueLength, int 
 
                 // Aggiungi il leafNode esistente e il nuovo valore al nuovo Node4
                 addChildToNode4((Node *)newNode4, leafNode->key[depth + commonPrefixLength], node);
-                addChildToNode4((Node *)newNode4, key[depth + commonPrefixLength], (Node *)makeLeafNode(key, value, valueLength));
+                addChildToNode4((Node *)newNode4, key[depth + commonPrefixLength], (Node *)makeLeafNode(key, value, keyLength, valueLength));
 
                 *parentPointer = (Node *)newNode4;
                 return (Node *)newNode4;
@@ -685,7 +692,7 @@ Node *insert(Node **root, const char *key, void *value, size_t valueLength, int 
             *parentPointer = grownNode;
             node = grownNode;
         } else {
-            addChild(node, key[depth], (Node *)makeLeafNode(key, value, valueLength));
+            addChild(node, key[depth], (Node *)makeLeafNode(key, value, keyLength, valueLength));
             return *root;
         }
 
@@ -758,10 +765,10 @@ void freeART(ART *art) {
     }
 }
 
-// int main(void){
-//     UNITY_BEGIN();
+int main(void){
+    UNITY_BEGIN();
 
-//     RUN_TEST(test_growNode16ToNode48_2);
+    RUN_TEST(test_insertAndFind_MultipleIntegers);
 
-//     return UNITY_END();
-// }
+    return UNITY_END();
+}

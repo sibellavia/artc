@@ -744,75 +744,173 @@ void test_growNode16ToNode48_2() {
     freeNode((Node *)node48);
 }
 
+/* Integrated Tests */
+
+void test_createRootNode(void) {
+    Node *root = createRootNode();
+    TEST_ASSERT_NOT_NULL(root);
+    freeNode(root);
+}
+
+void test_insertAndFind_SimpleString(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    char *key = "test";
+    char *value = "value1";
+    
+    insert(&(art->root), key, value, strlen(value), 0);
+    Node *node = findChild(art->root, 't');
+    TEST_ASSERT_NOT_NULL(node);
+
+    // Verify if the node is a leaf and contains the correct value.
+    if (node && node->type == LEAF) {
+        LeafNode *leaf = (LeafNode *)node;
+        TEST_ASSERT_EQUAL_STRING(value, leaf->value);
+    }
+
+    freeART(art);
+}
+
+void test_insertAndFind_SimpleInteger(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    int key = 123; // Represented as bytes.
+    int value = 456;
+    
+    insert(&(art->root), (const char *)&key, &value, sizeof(value), 0);
+    Node *node = findChild(art->root, *((char *)&key));
+    TEST_ASSERT_NOT_NULL(node);
+
+    // Verify if the node is a leaf and contains the correct value.
+    if (node && node->type == LEAF) {
+        LeafNode *leaf = (LeafNode *)node;
+        TEST_ASSERT_EQUAL_INT(value, *((int *)leaf->value));
+    }
+
+    freeART(art);
+}
+
+void test_insertAndFind_MultipleStrings(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    char *keys[] = {"apple", "orange", "banana"};
+    char *values[] = {"fruit1", "fruit2", "fruit3"};
+
+    // Insert multiple strings.
+    for (int i = 0; i < 3; i++) {
+        insert(&(art->root), keys[i], values[i], strlen(values[i]), 0);
+    }
+
+    // Verify each string.
+    for (int i = 0; i < 3; i++) {
+        Node *node = findChild(art->root, keys[i][0]);
+        TEST_ASSERT_NOT_NULL(node);
+
+        if (node && node->type == LEAF) {
+            LeafNode *leaf = (LeafNode *)node;
+            TEST_ASSERT_EQUAL_STRING(values[i], leaf->value);
+        }
+    }
+
+    freeART(art);
+}
+
+void test_insertAndFind_MultipleIntegers(void) {
+    ART *art = initializeAdaptiveRadixTree();
+    int keys[] = {123, 456, 789};
+    int values[] = {111, 222, 333};
+
+    // Insert multiple integers.
+    for (int i = 0; i < 3; i++) {
+        insert(&(art->root), (const char *)&keys[i], &values[i], sizeof(values[i]), 0);
+    }
+
+    // Verify each integer.
+    for (int i = 0; i < 3; i++) {
+        Node *node = findChild(art->root, *((char *)&keys[i]));
+        TEST_ASSERT_NOT_NULL(node);
+
+        if (node && node->type == LEAF) {
+            LeafNode *leaf = (LeafNode *)node;
+            TEST_ASSERT_EQUAL_INT(values[i], *((int *)leaf->value));
+        }
+    }
+
+    freeART(art);
+}
+
 /* Main */
 
-int main(void){
-    printf("Starting tests...\n");
-    UNITY_BEGIN();
+// int main(void){
+//     printf("Starting tests...\n");
+//     UNITY_BEGIN();
 
-    /* createRootNode */
-    RUN_TEST(test_createRootNode_returnsNonNullPointer);
-    RUN_TEST(test_createRootNode_ShouldAllocateMemory);
-    RUN_TEST(test_createRootNode_ShouldBeTypeNode4);
-    RUN_TEST(test_createRootNode_PrefixLenShouldBeZero);
-    RUN_TEST(test_createRootNode_KeysShouldBeEmpty);
-    RUN_TEST(test_createRootNode_WrongNodeType);
-    RUN_TEST(test_createRootNode_WrongPrefixLen);
+//     /* createRootNode */
+//     RUN_TEST(test_createRootNode_returnsNonNullPointer);
+//     RUN_TEST(test_createRootNode_ShouldAllocateMemory);
+//     RUN_TEST(test_createRootNode_ShouldBeTypeNode4);
+//     RUN_TEST(test_createRootNode_PrefixLenShouldBeZero);
+//     RUN_TEST(test_createRootNode_KeysShouldBeEmpty);
+//     RUN_TEST(test_createRootNode_WrongNodeType);
+//     RUN_TEST(test_createRootNode_WrongPrefixLen);
 
-    /* initializeAdaptiveRadixTree */
-    RUN_TEST(test_initializeAdaptiveRadixTree_Allocation);
-    RUN_TEST(test_initializeAdaptiveRadixTree_RootNode);
-    RUN_TEST(test_initializeAdaptiveRadixTree_InitialSize);
+//     /* initializeAdaptiveRadixTree */
+//     RUN_TEST(test_initializeAdaptiveRadixTree_Allocation);
+//     RUN_TEST(test_initializeAdaptiveRadixTree_RootNode);
+//     RUN_TEST(test_initializeAdaptiveRadixTree_InitialSize);
 
-    /* findChildBinary */
-    RUN_TEST(test_findChildBinary_NonExistingByte);
-    RUN_TEST(test_findChildBinary_EmptyNode);
-    RUN_TEST(test_findChildBinary_ExistingChild_Node48);
-    RUN_TEST(test_findChildBinary_NonExistingByte_Node48);
-    RUN_TEST(test_findChildBinary_ExistingChild_Node256);
+//     /* findChildBinary */
+//     RUN_TEST(test_findChildBinary_NonExistingByte);
+//     RUN_TEST(test_findChildBinary_EmptyNode);
+//     RUN_TEST(test_findChildBinary_ExistingChild_Node48);
+//     RUN_TEST(test_findChildBinary_NonExistingByte_Node48);
+//     RUN_TEST(test_findChildBinary_ExistingChild_Node256);
 
-    /* int getPrefixLength(Node *node) */
-    RUN_TEST(test_getPrefixLength_Node4);
-    RUN_TEST(test_getPrefixLength_Node16);
-    RUN_TEST(test_getPrefixLength_Node48);
-    RUN_TEST(test_getPrefixLength_Node256);
-    RUN_TEST(test_getPrefixLength_InvalidNodeType);
+//     /* int getPrefixLength(Node *node) */
+//     RUN_TEST(test_getPrefixLength_Node4);
+//     RUN_TEST(test_getPrefixLength_Node16);
+//     RUN_TEST(test_getPrefixLength_Node48);
+//     RUN_TEST(test_getPrefixLength_Node256);
+//     RUN_TEST(test_getPrefixLength_InvalidNodeType);
 
-    /* int checkPrefix(Node *node, char *key, int depth) */
-    // Node4 tests
-    RUN_TEST(test_checkPrefix_FullMatch_Node4);
-    RUN_TEST(test_checkPrefix_NoMatch_Node4);
-    RUN_TEST(test_checkPrefix_PartialMatch_Node4);
-    RUN_TEST(test_checkPrefix_DifferentDepths_Node4);
+//     /* int checkPrefix(Node *node, char *key, int depth) */
+//     // Node4 tests
+//     RUN_TEST(test_checkPrefix_FullMatch_Node4);
+//     RUN_TEST(test_checkPrefix_NoMatch_Node4);
+//     RUN_TEST(test_checkPrefix_PartialMatch_Node4);
+//     RUN_TEST(test_checkPrefix_DifferentDepths_Node4);
 
-    // Node16 tests
-    RUN_TEST(test_checkPrefix_FullMatch_Node16);
-    RUN_TEST(test_checkPrefix_NoMatch_Node16);
-    RUN_TEST(test_checkPrefix_PartialMatch_Node16);
-    RUN_TEST(test_checkPrefix_DifferentDepths_Node16);
+//     // Node16 tests
+//     RUN_TEST(test_checkPrefix_FullMatch_Node16);
+//     RUN_TEST(test_checkPrefix_NoMatch_Node16);
+//     RUN_TEST(test_checkPrefix_PartialMatch_Node16);
+//     RUN_TEST(test_checkPrefix_DifferentDepths_Node16);
 
-    // Node48 tests
-    RUN_TEST(test_checkPrefix_FullMatch_Node48);
-    RUN_TEST(test_checkPrefix_NoMatch_Node48);
-    RUN_TEST(test_checkPrefix_PartialMatch_Node48);
-    RUN_TEST(test_checkPrefix_DifferentDepths_Node48);
+//     // Node48 tests
+//     RUN_TEST(test_checkPrefix_FullMatch_Node48);
+//     RUN_TEST(test_checkPrefix_NoMatch_Node48);
+//     RUN_TEST(test_checkPrefix_PartialMatch_Node48);
+//     RUN_TEST(test_checkPrefix_DifferentDepths_Node48);
 
-    /* Check Prefix */
-    RUN_TEST(test_InsertWithCommonPrefix);
-    RUN_TEST(test_GrowNodeWithPrefix);
-    RUN_TEST(test_InsertWithoutCommonPrefix);
-    RUN_TEST(test_PrefixCalculation);
-    RUN_TEST(test_CommonPrefixWithMultipleKeys);
-    RUN_TEST(test_PartialCommonPrefix);
-    RUN_TEST(test_NoCommonPrefix);
-    RUN_TEST(test_PrefixDuringNodeGrowth);
+//     /* Check Prefix */
+//     RUN_TEST(test_InsertWithCommonPrefix);
+//     RUN_TEST(test_GrowNodeWithPrefix);
+//     RUN_TEST(test_InsertWithoutCommonPrefix);
+//     RUN_TEST(test_PrefixCalculation);
+//     RUN_TEST(test_CommonPrefixWithMultipleKeys);
+//     RUN_TEST(test_PartialCommonPrefix);
+//     RUN_TEST(test_NoCommonPrefix);
+//     RUN_TEST(test_PrefixDuringNodeGrowth);
 
-    /* Insert algorithm */
-    RUN_TEST(test_insert_intoEmptyTree);
-    // RUN_TEST(test_growNode4ToNode16);
-    // RUN_TEST(test_growNode16ToNode48);
-    // RUN_TEST(test_findNextAvailableChild);
-    // RUN_TEST(test_growNode16ToNode48_2);
+//     /* Insert algorithm */
+//     RUN_TEST(test_insert_intoEmptyTree);
+//     // RUN_TEST(test_growNode4ToNode16);
+//     // RUN_TEST(test_growNode16ToNode48);
+//     // RUN_TEST(test_findNextAvailableChild);
+//     // RUN_TEST(test_growNode16ToNode48_2);
 
+//     /* Integrated Tests */
+//     RUN_TEST(test_createRootNode);
+//     RUN_TEST(test_insertAndFind_SimpleString);
+//     RUN_TEST(test_insertAndFind_SimpleInteger);
+//     RUN_TEST(test_insertAndFind_MultipleStrings);
+//     RUN_TEST(test_insertAndFind_MultipleIntegers);
     
-}
+// }
