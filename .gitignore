@@ -54,3 +54,4 @@ dkms.conf
 .vscode
 
 test_runner
+art_tests

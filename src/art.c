@@ -305,18 +305,19 @@ Node *growFromNode16toNode48(Node **nodePtr) {
     newNode->node.prefixLen = oldNode->node.prefixLen;
     memset(newNode->keys, EMPTY_KEY, sizeof(newNode->keys));
 
-    for (int i = 0; i < 16; i++) {
-        if (oldNode->children[i] != NULL) {
-            uint8_t keyChar = oldNode->keys[i];
+    for (int i = 0; i < 16; i++){
+        if (oldNode->children[i] != NULL){
+            uint8_t keyChar = oldNode->keys[i]; // Questo dovrebbe essere un valore intero da 0 a 255
             int childIndex = findNextAvailableChild(newNode->children);
-            int keyIndex = findUnusedKey(newNode->keys);
 
-            if (childIndex == INVALID || keyIndex == INVALID) {
-                freeNode((Node *) newNode);
+            if (childIndex == INVALID){
+                freeNode((Node *)newNode);
                 return NULL;
             }
 
-            newNode->keys[keyIndex] = childIndex;
+            printf("Before assignment, newNode->keys[%d] = %d\n", (int)keyChar, newNode->keys[(int)keyChar]);
+            newNode->keys[(int)keyChar] = childIndex;
+            printf("After assignment, newNode->keys[%d] = %d\n", (int)keyChar, newNode->keys[(int)keyChar]);
             newNode->children[childIndex] = oldNode->children[i];
         }
     }
@@ -793,8 +794,6 @@ void freeNode(Node *node) {
 
     free(node);
 }
-
-
 
 void freeART(ART *art) {
     if (art != NULL) {

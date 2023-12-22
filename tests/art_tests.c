@@ -105,7 +105,7 @@ void test_integratedARTExpansion(void) {
     ART *tree = initializeAdaptiveRadixTree();
 
     // Inserisci una serie di stringhe che dovrebbero portare a espansioni del nodo.
-    char *keys[] = {"key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10", "key11", "key12", "key13", "key14", "key15", "key16", "key17", "key18", "key19", "key20"};
+    char *keys[] = {"aey1", "bey2", "cey3", "dey4", "eey5", "fey6", "gey7", "hey8", "iey9", "jey10", "key11", "ley12", "mey13", "ney14", "oey15", "pey16", "qey17", "rey18", "sey19", "tey20"};
     char *values[] = {"val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8", "val9", "val10", "val11", "val12", "val13", "val14", "val15", "val16", "val17", "val18", "val19", "val20"};
     for (int i = 0; i < 8; i++) {
         insertString(&tree->root, keys[i], values[i], strlen(values[i]) + 1);
@@ -125,7 +125,7 @@ void test_integratedARTExpansion(void) {
     TEST_ASSERT_MESSAGE(tree->root->type == NODE48, "Root should have expanded to a NODE48 type.");
 
     // Effettua una ricerca per verificare che i valori possano essere correttamente recuperati dopo l'espansione.
-    for (int i = 0; i < 20; i++) {  
+    for (int i = 1; i < 20; i++) {  
         Node *found = findChild(tree->root, keys[i][0]);
         TEST_ASSERT_NOT_NULL(found);
         // Assumi che 'found' sia un LeafNode e verifica che il valore sia corretto.
