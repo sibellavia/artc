@@ -102,11 +102,11 @@ Node *growFromNode16toNode48(Node **nodePtr);
 Node *growFromNode48toNode256(Node **nodePtr);
 Node *grow(Node **node);
 
-Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode);
-Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode);
-Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode);
-Node *addChildToNode256(Node *parentNode, char keyChar, Node *childNode);
-Node *addChild(Node *parentNode, char keyChar, Node *childNode);
+Node *addChildToNode4(Node *parentNode, const void *keyPart, Node *childNode);
+Node *addChildToNode16(Node *parentNode, const void *keyPart, Node *childNode);
+Node *addChildToNode48(Node *parentNode, const void *keyPart, Node *childNode);
+Node *addChildToNode256(Node *parentNode, const void *keyPart, Node *childNode);
+Node *addChild(Node *parentNode, const void *keyPart, Node *childNode);
 
 Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, size_t existingKeyLength, const char *newKey, void *newValue, size_t newKeyLength, size_t newValueLength, int depth);
 
@@ -115,9 +115,13 @@ bool isNodeFull(Node *node);
 void setPrefix(Node *node, const char *prefix, int prefixLen);
 
 typedef int (*compare_func)(const void *a, const void *b, size_t size);
-
+int compare_ints(const void *a, const void *b, size_t size);
+int compare_strings(const void *a, const void *b, size_t size);
 Node *insert(Node **root, const void *key, size_t keyLength, void *value, size_t valueLength, int depth, compare_func cmp);
+Node *insertInt(Node **root, int key, void *value, size_t valueLength);
+Node *insertString(Node **root, const char *key, void *value, size_t valueLength);
 
+typedef void (*FreeValueFunc)(void *);
 void freeNode(Node *node);
 void freeART(ART *art);
 

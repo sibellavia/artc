@@ -7,8 +7,7 @@
 */
 
 #include "art.h"
-// #include "../tests/art_integrated_tests.c" // TEMPORARY, TO DELETE
-#include "../tests/art_unit_tests.c" // TEMPORARY, TO DELETE
+#include "../tests/art_tests.c" // TEMPORARY, TO DELETE
 
 Node *createRootNode() {
     Node4 *root = calloc(1, sizeof(Node4));
@@ -389,7 +388,7 @@ Node *grow(Node **node){
     }
 }
 
-Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode){
+Node *addChildToNode4(Node *parentNode, const void *keyPart, Node *childNode){
     if (parentNode == NULL || childNode == NULL){
         return NULL;
     }
@@ -404,12 +403,12 @@ Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode){
 
     if (count >= 4){
         parentNode = grow(&parentNode);
-        return addChild(parentNode, keyChar, childNode);
+        return addChild(parentNode, keyPart, childNode);
     }
 
     // Find the position to insert the new key
     int position = 0;
-    while (position < count && node->keys[position] < keyChar){
+    while (position < count && node->keys[position] < *(const uint8_t *)keyPart){
         position++;
     }
 
@@ -420,13 +419,13 @@ Node *addChildToNode4(Node *parentNode, char keyChar, Node *childNode){
     }
 
     // Insert the new key and child
-    node->keys[position] = keyChar;
+    node->keys[position] = *(const uint8_t *)keyPart;
     node->children[position] = childNode;
 
     return parentNode;
 }
 
-Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode){
+Node *addChildToNode16(Node *parentNode, const void *keyPart, Node *childNode){
     if (parentNode == NULL || childNode == NULL){
         return NULL;
     }
@@ -443,12 +442,12 @@ Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode){
 
     if (count >= 16){
         parentNode = grow(&parentNode);
-        return addChild(parentNode, keyChar, childNode);
+        return addChild(parentNode, keyPart, childNode);
     }
 
     // Find the position to insert the new key
     int position = 0;
-    while (position < count && node->keys[position] < keyChar){
+    while (position < count && node->keys[position] < *(const uint8_t *)keyPart){
         position++;
     }
 
@@ -459,13 +458,13 @@ Node *addChildToNode16(Node *parentNode, char keyChar, Node *childNode){
     }
 
     // Insert the new key and child
-    node->keys[position] = keyChar;
+    node->keys[position] = *(const uint8_t *)keyPart;
     node->children[position] = childNode;
 
     return parentNode;
 }
 
-Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode){
+Node *addChildToNode48(Node *parentNode, const void *keyPart, Node *childNode){
     if (parentNode == NULL || childNode == NULL){
         return NULL;
     }
@@ -473,7 +472,7 @@ Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode){
     Node48 *node = (Node48 *)parentNode;
 
     // Check whether we already have a child with this key
-    unsigned char index = (unsigned char)keyChar;
+    unsigned char index = *(const unsigned char *)keyPart;
     if (node->keys[index] != EMPTY_KEY){
         node->children[node->keys[index]] = childNode;
         return parentNode;
@@ -483,7 +482,7 @@ Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode){
     int position = findEmptyIndexForChildren(node);
     if (position == INVALID){
         parentNode = grow(&parentNode);
-        return addChild(parentNode, keyChar, childNode);
+        return addChild(parentNode, keyPart, childNode);
     }
 
     // Insert the child into the node
@@ -493,34 +492,34 @@ Node *addChildToNode48(Node *parentNode, char keyChar, Node *childNode){
     return parentNode;
 }
 
-Node *addChildToNode256(Node *parentNode, char keyChar, Node *childNode){
+Node *addChildToNode256(Node *parentNode, const void *keyPart, Node *childNode){
     if (parentNode == NULL || childNode == NULL){
         return NULL;
     }
 
     Node256 *node = (Node256 *)parentNode;
-    node->children[(unsigned char)keyChar] = childNode;
+    node->children[*(const unsigned char *)keyPart] = childNode;
 
     return parentNode;
 }
 
-Node *addChild(Node *parentNode, char keyChar, Node *childNode){
+Node *addChild(Node *parentNode, const void *keyPart, Node *childNode){
         if(parentNode == NULL || childNode == NULL){
             return NULL;
         }
         
         switch (parentNode->type){
         case NODE4:{
-            return addChildToNode4(parentNode, keyChar, childNode);
+            return addChildToNode4(parentNode, keyPart, childNode);
         }
         case NODE16:{
-            return addChildToNode16(parentNode, keyChar, childNode);
+            return addChildToNode16(parentNode, keyPart, childNode);
         }
         case NODE48:{
-            return addChildToNode48(parentNode, keyChar, childNode);
+            return addChildToNode48(parentNode, keyPart, childNode);
         }
         case NODE256:{
-            return addChildToNode256(parentNode, keyChar, childNode);
+            return addChildToNode256(parentNode, keyPart, childNode);
         }
         case LEAF:{
             // A LeafNode cannot have children
@@ -566,8 +565,8 @@ Node4 *transformLeafToNode4(Node *leafNode, const char *existingKey, size_t exis
     char newKeyChar = newKeyLength > depth + prefixLen ? newKey[depth + prefixLen] : '\0';
 
     // Here, you would need to update addChild to handle a null character if it is part of the key
-    addChild((Node *)newNode, existingKeyChar, leafNode);
-    addChild((Node *)newNode, newKeyChar, (Node *)newLeafNode);
+    addChild((Node *)newNode, &existingKeyChar, leafNode);
+    addChild((Node *)newNode, &newKeyChar, (Node *)newLeafNode);
 
     return newNode;
 }
@@ -699,8 +698,9 @@ Node *insert(Node **root, const void *key, size_t keyLength, void *value, size_t
 
                 setPrefix((Node *)newNode4, key + depth, commonPrefixLength);
 
-                addChildToNode4((Node *)newNode4, leafNode->key[depth + commonPrefixLength], node);
-                addChildToNode4((Node *)newNode4, key[depth + commonPrefixLength], (Node *)makeLeafNode(key, value, keyLength, valueLength));
+                addChildToNode4((Node *)newNode4, &leafNode->key[depth + commonPrefixLength], node);
+                const void *specificKeyPart = (const char *)key + depth + commonPrefixLength;
+                addChildToNode4((Node *)newNode4, specificKeyPart, (Node *)makeLeafNode(key, value, keyLength, valueLength));
 
                 *parentPointer = (Node *)newNode4;
                 return (Node *)newNode4;
@@ -719,7 +719,10 @@ Node *insert(Node **root, const void *key, size_t keyLength, void *value, size_t
             *parentPointer = grownNode;
             node = grownNode;
         } else {
-            addChild(node, key[depth], (Node *)makeLeafNode(key, value, keyLength, valueLength));
+            // Take the address of the specific byte in the key
+            const void *keyPartAtDepth = (const char *)key + depth;
+            addChild(node, keyPartAtDepth, (Node *)makeLeafNode(key, value, keyLength, valueLength));
+
             return *root;
         }
 
@@ -803,7 +806,7 @@ void freeART(ART *art) {
 int main(void){
     UNITY_BEGIN();
 
-    RUN_TEST(test_insertAndFind_MultipleIntegers);
+    RUN_TEST(test_integratedARTExpansion);
 
     return UNITY_END();
 }
